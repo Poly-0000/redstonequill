@@ -119,8 +119,7 @@ public class Networking
     public static final StreamCodec<FriendlyByteBuf,UnifiedPayload> STREAM_CODEC = CustomPacketPayload.codec(UnifiedPayload::write, UnifiedPayload::new);
     public static final CustomPacketPayload.Type<UnifiedPayload> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(ModConstants.MODID, "unpnbt"));
 
-    public static CustomPacketPayload.Type<UnifiedPayload> getTYPE() { return TYPE; }
-    private UnifiedPayload(FriendlyByteBuf buf) { this(new UnifiedData(buf.readUtf(), buf.readNbt())); }
+      private UnifiedPayload(FriendlyByteBuf buf) { this(new UnifiedData(buf.readUtf(), buf.readNbt())); }
     private void write(FriendlyByteBuf buf) {
       data.write(buf);
     }
@@ -128,8 +127,7 @@ public class Networking
 
     public record UnifiedData(String id, CompoundTag nbt)
     {
-      public UnifiedData(FriendlyByteBuf buf) { this(buf.readUtf(), buf.readNbt()); }
-      public void write(FriendlyByteBuf buf) { buf.writeUtf(id); buf.writeNbt(nbt); }
+        public void write(FriendlyByteBuf buf) { buf.writeUtf(id); buf.writeNbt(nbt); }
       @Override public String toString() { return id + ": " + nbt.toString(); }
     }
   }
@@ -164,16 +162,7 @@ public class Networking
   {
     protected static final String PACKET_ID = "tns2c";
 
-    public static void sendToPlayer(ServerPlayer player, BlockEntity te, CompoundTag nbt)
-    {
-      if((te==null) || (nbt==null)) return;
-      final CompoundTag payload = new CompoundTag();
-      payload.putLong("pos", te.getBlockPos().asLong());
-      payload.put("nbt", nbt);
-      sendToClient(player, PACKET_ID, payload);
-    }
-
-    public static void sendToPlayers(BlockEntity te, CompoundTag nbt)
+      public static void sendToPlayers(BlockEntity te, CompoundTag nbt)
     {
       if((te==null) || (!(te.getLevel() instanceof ServerLevel sworld))) return;
       final CompoundTag payload = new CompoundTag();
@@ -214,14 +203,6 @@ public class Networking
     public static void sendToPlayer(ServerPlayer player, AbstractContainerMenu container, CompoundTag nbt)
     { if(container!=null) sendToPlayer(player, container.containerId, nbt); }
 
-    public static <C extends AbstractContainerMenu & INetworkSynchronisableContainer>
-    void sendToListeners(Level world, C container, CompoundTag nbt)
-    {
-      for(Player player: world.players()) {
-        if(player.containerMenu.containerId != container.containerId) continue;
-        sendToPlayer((ServerPlayer)player, container.containerId, nbt);
-      }
-    }
   }
 
   //--------------------------------------------------------------------------------------------------------------------
@@ -245,7 +226,7 @@ public class Networking
       sendToClient(splayer, PACKET_ID, nbt);
     }
 
-    public static void sendToPlayers(Level world, String handler, CompoundTag nbt)
+    public static void sendToPlayers(Level world, CompoundTag nbt)
     { if(world!=null) for(Player player: world.players()) sendToPlayer(player, nbt); }
   }
 

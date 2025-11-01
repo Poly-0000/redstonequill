@@ -15,15 +15,9 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -38,7 +32,6 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -47,18 +40,12 @@ import wile.redstonepen.ModContent;
 import wile.redstonepen.libmc.RsSignals;
 import wile.redstonepen.libmc.StandardBlocks;
 import wile.redstonepen.libmc.Auxiliaries;
-import wile.redstonepen.libmc.Overlay;
 
 import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
-@SuppressWarnings("deprecation")
 public class CircuitComponents
 {
-  //--------------------------------------------------------------------------------------------------------------------
-  // DirectedComponentBlock
-  //--------------------------------------------------------------------------------------------------------------------
-
   public static class DirectedComponentBlock extends StandardBlocks.WaterLoggable
   {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
@@ -188,8 +175,6 @@ public class CircuitComponents
 
     public DirectedComponentBlock(long config, BlockBehaviour.Properties builder, AABB aabb)
     { this(config, builder, new AABB[]{aabb}); }
-
-    //------------------------------------------------------------------------------------------------------------------
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder)
@@ -395,13 +380,7 @@ public class CircuitComponents
     protected static Direction getDownFacing(BlockState state)
     { return state.getValue(FACING); }
 
-    protected static Direction getForwardStateMappedFacing(BlockState state, Direction internal_side)
-    { return facing_fwd_state_mapping_[state.getValue(FACING).ordinal()][state.getValue(ROTATION)][internal_side.ordinal()]; }
-
-    protected static Direction getReverseStateMappedFacing(BlockState state, Direction world_side)
-    { return facing_rev_state_mapping_[state.getValue(FACING).ordinal()][state.getValue(ROTATION)][world_side.ordinal()]; }
-
-    protected void notifyOutputNeighbourOfStateChange(BlockState state, Level world, BlockPos pos)
+      protected void notifyOutputNeighbourOfStateChange(BlockState state, Level world, BlockPos pos)
     { notifyOutputNeighbourOfStateChange(state, world, pos, getOutputFacing(state)); }
 
     protected void notifyOutputNeighbourOfStateChange(BlockState state, Level world, BlockPos pos, Direction facing)
@@ -410,7 +389,7 @@ public class CircuitComponents
       final BlockState adjacent_state = world.getBlockState(adjacent_pos);
       try {
         adjacent_state.handleNeighborChanged(world, adjacent_pos, this, pos, false);
-        if(RsSignals.canEmitWeakPower(adjacent_state, world, adjacent_pos, facing)) {
+        if(RsSignals.canEmitWeakPower(adjacent_state, world, adjacent_pos)) {
           world.updateNeighborsAtExceptFromFacing(adjacent_pos, state.getBlock(), facing.getOpposite());
         }
       } catch(Throwable ex) {
@@ -426,30 +405,8 @@ public class CircuitComponents
 
   }
 
-  //--------------------------------------------------------------------------------------------------------------------
-  // Block item
-  //--------------------------------------------------------------------------------------------------------------------
 
-  public static class DirectedComponentBlockItem extends BlockItem
-  {
-    public DirectedComponentBlockItem(Block block, Item.Properties builder)
-    { super(block, builder); }
-
-    @Override
-    public void inventoryTick(ItemStack stack, Level world, Entity entity, int itemSlot, boolean isSelected)
-    {
-      if((!isSelected) || (!world.isClientSide) || !(entity instanceof Player player)) return;
-      final BlockHitResult hr = getPlayerPOVHitResult(world, player, ClipContext.Fluid.ANY);
-      final BlockPlaceContext pc = new BlockPlaceContext(new UseOnContext(player, InteractionHand.MAIN_HAND, hr));
-      if(!pc.canPlace()) return;
-      final BlockState state = getBlock().getStateForPlacement(pc);
-      if(state == null) return;
-      Overlay.show(state, pc.getClickedPos());
-    }
-
-  }
-
-  //--------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------
   // RelayBlock
   //--------------------------------------------------------------------------------------------------------------------
 
@@ -504,130 +461,6 @@ public class CircuitComponents
       return state;
     }
   }
-
-  //--------------------------------------------------------------------------------------------------------------------
-  // InvertedRelayBlock
-  //--------------------------------------------------------------------------------------------------------------------
-
-  public static class InvertedRelayBlock extends RelayBlock
-  {
-    public InvertedRelayBlock(long config, BlockBehaviour.Properties builder, AABB aabb)
-    { super(config, builder, aabb); }
-
-    @Override
-    public int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction redstone_side)
-    { return (state.getValue(POWERED) || (redstone_side != getOutputFacing(state).getOpposite())) ? 0 : 15; }
-
-    @Override
-    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource rnd)
-    {
-      final boolean powered = isPowered(state, world, pos);
-      if(powered == state.getValue(POWERED)) return;
-      if(powered) {
-        world.setBlock(pos, state.setValue(POWERED,true), 2|16);
-        notifyOutputNeighbourOfStateChange(state, world, pos);
-      }
-    }
-
-    @Override
-    public BlockState update(BlockState state, Level world, BlockPos pos, @Nullable BlockPos fromPos)
-    {
-      final boolean powered = isPowered(state, world, pos);
-      if(powered == state.getValue(POWERED)) return state;
-      if(world.getBlockTicks().hasScheduledTick(pos, this)) return state;
-      if(powered) {
-        world.scheduleTick(pos, this, 2);
-      } else {
-        world.setBlock(pos, state.setValue(POWERED,false), 2|16);
-        notifyOutputNeighbourOfStateChange(state, world, pos);
-      }
-      return state;
-    }
-  }
-
-  //--------------------------------------------------------------------------------------------------------------------
-  // BistableRelayBlock
-  //--------------------------------------------------------------------------------------------------------------------
-
-  public static class BistableRelayBlock extends RelayBlock
-  {
-    public BistableRelayBlock(long config, BlockBehaviour.Properties builder, AABB aabb)
-    { super(config, builder, aabb); }
-
-    @Override
-    public int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction redstone_side)
-    { return ((state.getValue(STATE) == 0) || (redstone_side != getOutputFacing(state).getOpposite())) ? 0 : 15; }
-
-    @Override
-    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource rnd)
-    {}
-
-    @Override
-    public BlockState update(BlockState state, Level world, BlockPos pos, @Nullable BlockPos fromPos)
-    {
-      final boolean powered = isPowered(state, world, pos);
-      final boolean pwstate = state.getValue(POWERED);
-      if(powered == pwstate) return state;
-      state = state.setValue(POWERED, powered);
-      if(powered && !pwstate) {
-        state = state.setValue(STATE, (state.getValue(STATE)==0) ? (1) : (0));
-        world.setBlock(pos, state, 2|16);
-        notifyOutputNeighbourOfStateChange(state, world, pos);
-      } else if(!powered && pwstate) {
-        world.setBlock(pos, state, 2|16);
-      }
-      return state;
-    }
-  }
-
-  //--------------------------------------------------------------------------------------------------------------------
-  // PulseRelayBlock
-  //--------------------------------------------------------------------------------------------------------------------
-
-  public static class PulseRelayBlock extends RelayBlock
-  {
-    public PulseRelayBlock(long config, BlockBehaviour.Properties builder, AABB aabb)
-    { super(config, builder, aabb); }
-
-    @Override
-    public int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction redstone_side)
-    { return ((state.getValue(STATE) == 0) || (redstone_side != getOutputFacing(state).getOpposite())) ? 0 : 15; }
-
-    @Override
-    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource rnd)
-    {
-      if(state.getValue(STATE) == 0) return;
-      state = state.setValue(STATE, 0);
-      world.setBlock(pos, state, 2|16);
-      notifyOutputNeighbourOfStateChange(state, world, pos);
-    }
-
-    @Override
-    public BlockState update(BlockState state, Level world, BlockPos pos, @Nullable BlockPos fromPos)
-    {
-      final boolean powered = isPowered(state, world, pos);
-      if(powered != state.getValue(POWERED)) {
-        state = state.setValue(POWERED, powered);
-        if(powered) {
-          boolean trig = (state.getValue(STATE) == 0);
-          state = state.setValue(STATE, 1);
-          world.setBlock(pos, state, 2|16);
-          if(trig) notifyOutputNeighbourOfStateChange(state, world, pos);
-        } else {
-          world.setBlock(pos, state, 2|16);
-        }
-      }
-      if(!world.getBlockTicks().hasScheduledTick(pos, this)) {
-        world.scheduleTick(pos, this, 2);
-      }
-      return state;
-    }
-  }
-
-  //--------------------------------------------------------------------------------------------------------------------
-  // BridgeRelayBlock
-  //--------------------------------------------------------------------------------------------------------------------
-
   public static class BridgeRelayBlock extends RelayBlock
   {
     private int power_update_recursion_level_ = 0;
@@ -645,7 +478,7 @@ public class CircuitComponents
         if(state.is(Blocks.REDSTONE_WIRE)) {
           p = Math.max(0, state.getDirectSignal(world, pos, redstone_side)-2);
         } else if(state.is(ModContent.references.TRACK_BLOCK)) {
-          p = Math.max(0, RedstoneTrack.RedstoneTrackBlock.tile(world, pos).map(te->te.getRedstonePower(redstone_side, true)).orElse(0)-2);
+          p = Math.max(0, RedstoneTrack.RedstoneTrackBlock.tile(world, pos).map(te->te.getRedstonePower(redstone_side)).orElse(0)-2);
         } else if(state.is(ModContent.references.BRIDGE_RELAY_BLOCK)) {
           if(state.getValue(FACING) != world.getBlockState(relay_pos).getValue(FACING)) {
             p = 0;
@@ -656,7 +489,7 @@ public class CircuitComponents
           }
         } else {
           p = state.getSignal(world, pos, redstone_side);
-          if((p<15) && (!state.isSignalSource()) && (RsSignals.canEmitWeakPower(state, world, pos, redstone_side))) {
+          if((p<15) && (!state.isSignalSource()) && (RsSignals.canEmitWeakPower(state, world, pos))) {
             for(Direction d:Direction.values()) {
               if(d == redstone_side.getOpposite()) continue;
               p = Math.max(p, world.getBlockState(pos.relative(d)).getDirectSignal(world, pos.relative(d), d));

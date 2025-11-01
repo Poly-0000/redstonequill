@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-@SuppressWarnings("deprecation")
 public class Guis
 {
   // -------------------------------------------------------------------------------------------------------------------
@@ -77,7 +76,7 @@ public class Guis
     {
       renderBackground(gg, mouseX, mouseY, partialTicks);
       super.render(gg, mouseX, mouseY, partialTicks);
-      if(!tooltip_.render(gg, this, mouseX, mouseY)) renderTooltip(gg, mouseX, mouseY);
+      if(!tooltip_.render(gg, mouseX, mouseY)) renderTooltip(gg, mouseX, mouseY);
     }
 
     @Override
@@ -212,7 +211,6 @@ public class Guis
       setTooltip(null);
     }
 
-    @SuppressWarnings("all")
     public void renderToolTip(GuiGraphics gg, int mouseX, int mouseY)
     {
       if(!visible || (!active) || (tooltip_ == NO_TOOLTIP)) return;

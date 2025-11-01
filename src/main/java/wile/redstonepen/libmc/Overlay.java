@@ -29,14 +29,6 @@ import java.util.Optional;
 
 public class Overlay
 {
-  @OnlyIn(Dist.CLIENT)
-  public static void register()
-  {
-    Networking.OverlayTextMessage.setHandler(TextOverlayGui::show);
-  }
-
-  public static void show(ServerPlayer player, final Component message)
-  { Networking.OverlayTextMessage.sendToPlayer(player, message, 3000); }
 
   public static void show(ServerPlayer player, final Component message, int delay)
   { Networking.OverlayTextMessage.sendToPlayer(player, message, delay); }
@@ -47,26 +39,12 @@ public class Overlay
   public static void show(BlockState state, BlockPos pos, int displayTimeoutMs)
   { net.minecraft.client.Minecraft.getInstance().execute(()->TextOverlayGui.show(state, pos, displayTimeoutMs)); } // Only called when client side
 
-  // -----------------------------------------------------------------------------
-  // Configuration
-  // -----------------------------------------------------------------------------
 
   private static double overlay_y_ = 0.75;
-  private static int text_color_ = 0x00ffaa00;
-  private static int border_color_ = 0xaa333333;
-  private static int background_color1_ = 0xaa333333;
-  private static int background_color2_ = 0xaa444444;
 
-  public static void on_config(double overlay_y)
-  { on_config(overlay_y, 0x00ffaa00, 0xaa333333, 0xaa333333, 0xaa444444); }
-
-  public static void on_config(double overlay_y, int text_color, int border_color, int background_color1, int background_color2)
+    public static void on_config(double overlay_y)
   {
     overlay_y_ = overlay_y;
-    text_color_ = text_color;
-    border_color_ = border_color;
-    background_color1_ = background_color1;
-    background_color2_ = background_color2;
   }
 
   // -----------------------------------------------------------------------------
@@ -92,16 +70,10 @@ public class Overlay
     public static synchronized long deadline()
     { return text_deadline_; }
 
-    public static synchronized void hide()
-    { text_deadline_ = 0; text_ = EMPTY_TEXT; }
-
-    public static synchronized void show(Component s, int displayTimeoutMs)
+      public static synchronized void show(Component s, int displayTimeoutMs)
     { text_ = (s==null)?(EMPTY_TEXT):(s.copy()); text_deadline_ = System.currentTimeMillis() + displayTimeoutMs; }
 
-    public static synchronized void show(String s, int displayTimeoutMs)
-    { text_ = ((s==null)||(s.isEmpty()))?(EMPTY_TEXT):(Component.literal(s)); text_deadline_ = System.currentTimeMillis() + displayTimeoutMs; }
-
-    public static synchronized void show(BlockState state, BlockPos pos, int displayTimeoutMs)
+      public static synchronized void show(BlockState state, BlockPos pos, int displayTimeoutMs)
     { pos_ = new BlockPos(pos); state_ = state; state_deadline_ = System.currentTimeMillis() + displayTimeoutMs; }
 
     private static synchronized Optional<Tuple<BlockState,BlockPos>> state_pos()
@@ -144,7 +116,6 @@ public class Overlay
       if((player==null) || (world==null)) return;
       final BlockState state = sp.get().getA();
       final BlockPos pos = sp.get().getB();
-      @SuppressWarnings("deprecation")
       final int light = (world.hasChunkAt(pos)) ? net.minecraft.client.renderer.LightTexture.pack(world.getBrightness(LightLayer.BLOCK, pos), world.getBrightness(LightLayer.SKY, pos)) : net.minecraft.client.renderer.LightTexture.pack(15, 15);
       final var buffer = mc.renderBuffers().bufferSource();
       final double px = Mth.lerp(partialTick, player.xo, player.getX());

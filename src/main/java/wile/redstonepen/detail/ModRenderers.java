@@ -96,7 +96,6 @@ public class ModRenderers
     { this.renderer_ = renderer; }
 
     @Override
-    @SuppressWarnings("deprecation")
     public void render(final RedstoneTrack.TrackBlockEntity te, float unused1, PoseStack mxs, MultiBufferSource buf, int combinedLightIn, int combinedOverlayIn)
     {
       if(tesr_error_counter <= 0) return;

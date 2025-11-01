@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-@SuppressWarnings("deprecation")
 public class RedstonePenItem extends StandardItems.BaseItem
 {
   public RedstonePenItem(Item.Properties properties)
@@ -58,7 +57,7 @@ public class RedstonePenItem extends StandardItems.BaseItem
     } else {
       tooltip.add(Auxiliaries.localizable("item."+ ModConstants.MODID + ".pen.tooltip.rsfrominventory"));
     }
-    Auxiliaries.Tooltip.addInformation(stack, ctx, tooltip, flag, true);
+    Auxiliaries.Tooltip.addInformation(stack, tooltip, flag, true);
   }
 
   @Override
@@ -99,10 +98,6 @@ public class RedstonePenItem extends StandardItems.BaseItem
     if(isPen(stack)) attack(stack, pos, player);
     return false;
   }
-
-  @Override
-  public boolean onBlockStartBreak(ItemStack stack, BlockPos pos, Player player)
-  { attack(stack, pos, player); return false; }
 
   @Override
   public InteractionResult useOn(UseOnContext context)
@@ -170,7 +165,7 @@ public class RedstonePenItem extends StandardItems.BaseItem
       tc = Auxiliaries.localizable("overlay.track_power", powerFormatted(te.getSidePower(rs_side)));
       if(Auxiliaries.isDevelopmentMode()) {
         tc.append(Component.literal(String.format(" | flags: %016x, p: ", te.getStateFlags())));
-        tc.append(Component.literal(Arrays.stream(Direction.values()).map(side->side.toString().substring(0,1) + te.getRedstonePower(side.getOpposite(), false)).collect(Collectors.joining(","))));
+        tc.append(Component.literal(Arrays.stream(Direction.values()).map(side->side.toString().substring(0,1) + te.getRedstonePower(side.getOpposite())).collect(Collectors.joining(","))));
       }
     } else if(state.is(Blocks.REPEATER)) {
       tc = Auxiliaries.localizable("overlay.direct_power", powerFormatted(state.getValue(RepeaterBlock.POWERED) ? 15 : 0));
@@ -206,7 +201,7 @@ public class RedstonePenItem extends StandardItems.BaseItem
           tc = Auxiliaries.localizable("overlay.direct_power_at", powerFormatted(p), max_side.getOpposite().toString());
         }
       }
-    } else if(RsSignals.canEmitWeakPower(state, world, pos, rs_side)) {
+    } else if(RsSignals.canEmitWeakPower(state, world, pos)) {
       Direction max_side = Direction.values()[0];
       int p = 0;
       for(Direction d: Direction.values()) {

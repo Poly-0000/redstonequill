@@ -11,7 +11,6 @@ package wile.redstonepen.libmc;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.ModList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -61,7 +60,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-@SuppressWarnings("deprecation")
 public class Auxiliaries
 {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(ModConstants.MODID);
@@ -90,25 +88,16 @@ public class Auxiliaries
   // Sideness, system/environment, tagging interfaces
   // -------------------------------------------------------------------------------------------------------------------
 
-  public interface IExperimentalFeature {}
-
-  public static java.nio.file.Path getGameDirectory()
+    public static java.nio.file.Path getGameDirectory()
   {
     // return FabricLoader.getInstance().getGameDir(); // Fabric
     return net.neoforged.fml.loading.FMLLoader.getGamePath();
   }
 
-  public static boolean isModLoaded(final String registry_name)
-  { return ModList.get().isLoaded(registry_name); }
-
-  public static boolean isDevelopmentMode()
+    public static boolean isDevelopmentMode()
   { return development_mode; }
 
-  public static String getDevelopmentModeControlFile()
-  { return development_mode_control_file; }
-
-  @OnlyIn(Dist.CLIENT)
-  @SuppressWarnings("all")
+    @OnlyIn(Dist.CLIENT)
   public static boolean isShiftDown()
   {
     return (InputConstants.isKeyDown(net.minecraft.client.Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
@@ -116,7 +105,6 @@ public class Auxiliaries
   }
 
   @OnlyIn(Dist.CLIENT)
-  @SuppressWarnings("all")
   public static boolean isCtrlDown()
   {
     return (InputConstants.isKeyDown(net.minecraft.client.Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) ||
@@ -233,11 +221,10 @@ public class Auxiliaries
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static boolean addInformation(ItemStack stack, Item.TooltipContext ctx, List<Component> tooltip, TooltipFlag flag, boolean addAdvancedTooltipHints)
+    public static boolean addInformation(ItemStack stack, List<Component> tooltip, TooltipFlag flag, boolean addAdvancedTooltipHints)
     { return addInformation(stack.getDescriptionId(), stack.getDescriptionId(), tooltip, flag, addAdvancedTooltipHints); }
   }
 
-  @SuppressWarnings("unused")
   public static void playerChatMessage(final Player player, final String message)
   { player.displayClientMessage(Component.translatable(message.trim()), true); }
 

@@ -59,7 +59,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("deprecation")
 public class RedstoneTrack
 {
   //--------------------------------------------------------------------------------------------------------------------
@@ -95,17 +94,7 @@ public class RedstoneTrack
         .put(Direction.WEST, 5)
         .build();
 
-      public static final ImmutableMap<Long,Direction> BULK_FACE_MAPPING = new ImmutableMap.Builder<Long,Direction>()
-        .put(0x0000000000000000L, Direction.DOWN)
-        .put(0x0000000001000000L, Direction.DOWN)
-        .put(0x0000000002000000L, Direction.UP)
-        .put(0x0000000004000000L, Direction.NORTH)
-        .put(0x0000000008000000L, Direction.SOUTH)
-        .put(0x0000000010000000L, Direction.EAST)
-        .put(0x0000000020000000L, Direction.WEST)
-        .build();
-
-      public static final ImmutableMap<Direction,Long> BULK_FACE_MAPPING_REV = new ImmutableMap.Builder<Direction,Long>()
+        public static final ImmutableMap<Direction,Long> BULK_FACE_MAPPING_REV = new ImmutableMap.Builder<Direction,Long>()
         .put(Direction.DOWN,  0x0000000001000000L)
         .put(Direction.UP,    0x0000000002000000L)
         .put(Direction.NORTH, 0x0000000004000000L)
@@ -180,18 +169,7 @@ public class RedstoneTrack
       public static Tuple<Direction,Direction> getWireBitSideAndDirection(long wirebit)
       { return WIRE_FACE_DIRECTION_MAPPING.getOrDefault(wirebit, new Tuple<>(Direction.DOWN,Direction.DOWN)); }
 
-      public static List<Direction> getVanillaWireConnectionDirections(long mask)
-      {
-        if((mask & 0x0000000fL)==0) return Collections.emptyList();
-        final List<Direction> r = new ArrayList<>(4);
-        if((mask & 0x00000001L) != 0) r.add(Direction.NORTH);
-        if((mask & 0x00000002L) != 0) r.add(Direction.SOUTH);
-        if((mask & 0x00000004L) != 0) r.add(Direction.EAST);
-        if((mask & 0x00000008L) != 0) r.add(Direction.WEST);
-        return r;
-      }
-
-      public static boolean hasVanillaWireConnection(long mask, Direction side)
+        public static boolean hasVanillaWireConnection(long mask, Direction side)
       {
         return switch (side) {
           case NORTH -> ((mask & 0x00000001L) != 0);
@@ -205,22 +183,7 @@ public class RedstoneTrack
       public static boolean hasBulkConnection(long mask, Direction side)
       { return ((connections.BULK_FACE_MAPPING_REV.get(side) & mask) != 0); }
 
-      public static boolean hasRedstoneConnection(long mask, Direction side)
-      {
-        return switch (side) {
-          case DOWN -> ((mask & 0x01222200L) != 0);
-          case UP -> ((mask & 0x02111100L) != 0);
-          case NORTH -> ((mask & 0x04440011L) != 0);
-          case SOUTH -> ((mask & 0x08880022L) != 0);
-          case EAST -> ((mask & 0x10004444L) != 0);
-          case WEST -> ((mask & 0x20008888L) != 0);
-        };
-      }
-
-      public static long getWireElementsOnFace(Direction face)
-      { return (0xfL<<((connections.CONNECTION_BIT_ORDER_REV.get(face)*4)+STATE_FLAG_WIR_POS)); }
-
-      public static long getAllElementsOnFace(Direction face)
+        public static long getAllElementsOnFace(Direction face)
       {
         final int index = connections.CONNECTION_BIT_ORDER_REV.get(face);
         return (0xfL<<((index*4)+STATE_FLAG_WIR_POS))|(0x1L<<(index+STATE_FLAG_CON_POS));
@@ -433,17 +396,13 @@ public class RedstoneTrack
 
     @Override
     public int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction redstone_side)
-    { return can_provide_power_ ? tile(world, pos).map(te->te.getRedstonePower(redstone_side, true)).orElse(0) : 0; }
+    { return can_provide_power_ ? tile(world, pos).map(te->te.getRedstonePower(redstone_side)).orElse(0) : 0; }
 
     @Override
     public int getDirectSignal(BlockState state, BlockGetter world, BlockPos pos, Direction redstone_side)
-    { return can_provide_power_ ? tile(world, pos).map(te->te.getRedstonePower(redstone_side, false)).orElse(0) : 0; }
+    { return can_provide_power_ ? tile(world, pos).map(te->te.getRedstonePower(redstone_side)).orElse(0) : 0; }
 
-    @Override
-    public boolean shouldCheckWeakPower(BlockState state, LevelReader level, BlockPos pos, Direction side)
-    { return false; }
-
-    @Override
+      @Override
     public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource rnd)
     { if(!tile(world,pos).map(te->te.sync(false)).orElse(false)) world.removeBlock(pos, false); }
 
@@ -706,11 +665,7 @@ public class RedstoneTrack
     public void onServerPacketReceived(CompoundTag nbt)
     { readnbt(getLevel().registryAccess(), nbt); }
 
-    @Override
-    public void onClientPacketReceived(Player player, CompoundTag nbt)
-    {}
-
-    @OnlyIn(Dist.CLIENT)
+      @OnlyIn(Dist.CLIENT)
     public double getViewDistance()
     { return 64; }
 
@@ -731,35 +686,16 @@ public class RedstoneTrack
     public long getStateFlags()
     { return state_flags_; }
 
-    public int addWireFlags(long flags)
-    {
-      int n_added = 0;
-      for(int i=0; i<getWireFlagCount(); ++i) {
-        long mask = 1L<<i;
-        if(((flags & mask)!=0) && ((state_flags_ & mask))==0) {
-          state_flags_ |= mask;
-          ++n_added;
-        }
-      }
-      return n_added;
-    }
-
-    public int getWireFlags()
+      public int getWireFlags()
     { return (int)((state_flags_ & defs.STATE_FLAG_WIR_MASK)>>defs.STATE_FLAG_WIR_POS); }
 
-    public boolean getWireFlag(int index)
-    { return (state_flags_ & (1L<<(defs.STATE_FLAG_WIR_POS+index))) != 0; }
-
-    public int getWireFlagCount()
+      public int getWireFlagCount()
     { return defs.STATE_FLAG_WIR_COUNT; }
 
     public int getConnectionFlags()
     { return (int)((state_flags_ & defs.STATE_FLAG_CON_MASK)>>defs.STATE_FLAG_CON_POS); }
 
-    public boolean getConnectionFlag(int index)
-    { return (state_flags_ & (1L<<(defs.STATE_FLAG_CON_POS+index))) != 0; }
-
-    public int getConnectionFlagCount()
+      public int getConnectionFlagCount()
     { return defs.STATE_FLAG_CON_COUNT; }
 
     public int getSidePower(Direction side)
@@ -777,7 +713,7 @@ public class RedstoneTrack
     public boolean hasVanillaRedstoneConnection(Direction side)
     { return defs.connections.hasVanillaWireConnection(getStateFlags(), side) || ((state_flags_ & defs.connections.getBulkConnectorBit(side))!=0); }
 
-    public int getRedstonePower(Direction redstone_side, boolean weak)
+    public int getRedstonePower(Direction redstone_side)
     {
       if(isRemoved()) return 0;
       final Direction own_side = redstone_side.getOpposite();
@@ -1017,7 +953,7 @@ public class RedstoneTrack
       final BlockState state = world.getBlockState(pos);
       int p = (!state.is(Blocks.REDSTONE_WIRE) && (!state.is(getBlock()))) ? state.getSignal(world, pos, redstone_side) : 0;
       //if(trace_) Auxiliaries.logWarn(String.format("GETNWS from [%s @ %s] = %dw", posstr(getPos()), redstone_side, p));
-      if(!RsSignals.canEmitWeakPower(state, world, pos, redstone_side)) { getBlock().disablePower(false); return p; }
+      if(!RsSignals.canEmitWeakPower(state, world, pos)) { getBlock().disablePower(false); return p; }
       // According to world.getDirectSignalTo():
       for(Direction rs_side: Direction.values()) {
         final BlockPos side_pos = pos.relative(rs_side);
@@ -1034,7 +970,7 @@ public class RedstoneTrack
       return p;
     }
 
-    private boolean isNetConnectedTo(BlockPos pos, TrackNet net, BlockPos otherPos, @Nullable Direction otherSide, @Nullable TrackNet otherNet)
+    private boolean isNetConnectedTo(TrackNet net, BlockPos otherPos, @Nullable Direction otherSide, @Nullable TrackNet otherNet)
     {
       if(otherNet == null) return net.neighbour_positions.stream().anyMatch(np->np.equals(otherPos)); // no track, only positional block-connection check.
       for(var i=0; i<net.neighbour_positions.size(); ++i) {
@@ -1063,7 +999,7 @@ public class RedstoneTrack
     {
       record Neighbor(BlockPos pos, Direction side, int power, boolean direct_update, boolean needs_indirect) {}
       final BlockPos my_pos = getBlockPos();
-      if(!isNetConnectedTo(my_pos, net, fromPos, null, fromNet)) return;
+      if(!isNetConnectedTo(net, fromPos, null, fromNet)) return;
       final Level world = getLevel();
       final List<Neighbor> neighbors = new LinkedList<>();
       if(trace_) Auxiliaries.logWarn(String.format("NBCH: %s from %s (%s)", posstr(my_pos), posstr(fromPos), world.getBlockState(fromPos).getBlock().getDescriptionId()));
@@ -1077,7 +1013,7 @@ public class RedstoneTrack
           neighbors.add(new Neighbor(ext_pos, ext_side, p_vanilla_wire, false, false));
           pmax = Math.max(pmax, p_vanilla_wire-1);
         } else if(ext_state.is(getBlock())) {
-          final TrackNet nb_net = RedstoneTrackBlock.tile(world, ext_pos).flatMap( te->te.nets_.stream().filter( nbn->isNetConnectedTo(my_pos, net, ext_pos, ext_side, nbn) ).findFirst() ).orElse(null);
+          final TrackNet nb_net = RedstoneTrackBlock.tile(world, ext_pos).flatMap( te->te.nets_.stream().filter( nbn->isNetConnectedTo(net, ext_pos, ext_side, nbn) ).findFirst() ).orElse(null);
           if(nb_net != null) {
             final int p_track = Math.max(0, nb_net.power);
             neighbors.add(new Neighbor(ext_pos, ext_side, p_track, true, false));
@@ -1139,8 +1075,7 @@ public class RedstoneTrack
     private static String dirstr(@Nullable Direction dir)
     { return (dir==null) ? ("?") : (dir.toString().substring(0,1)); }
 
-    @SuppressWarnings("all")
-    private boolean isRedstoneInsulator(BlockState state, BlockPos pos)
+    private boolean isRedstoneInsulator(BlockState state)
     { return state.is(Blocks.GLASS) || state.is(Blocks.AIR); } // don't care about isRedstoneConductor(), messes up depending on block implementations.
 
     private void updateConnections(int recursion_left)
@@ -1287,7 +1222,7 @@ public class RedstoneTrack
                   }
                 }
                 // air or full block
-                if(!isRedstoneInsulator(wire_state, wire_pos)) {
+                if(!isRedstoneInsulator(wire_state)) {
                   positions.add(wire_pos);
                   ext_sides.add(tdir.getOpposite()); // real face.
                   int_sides.add(side);
@@ -1299,7 +1234,7 @@ public class RedstoneTrack
             if((external_connected_routes[i] & bulk) != 0) {
               final BlockPos bulk_pos = getBlockPos().relative(side);
               final BlockState bulk_state = getLevel().getBlockState(bulk_pos);
-              if(isRedstoneInsulator(bulk_state, bulk_pos)) continue;
+              if(isRedstoneInsulator(bulk_state)) continue;
               positions.add(bulk_pos);
               ext_sides.add(side.getOpposite()); // NOT the redstone side, the real face.
               int_sides.add(side);

@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-@SuppressWarnings("deprecation")
 public class ExtendedShapelessRecipe implements CraftingRecipe
 {
   public interface IRepairableToolItem
@@ -244,7 +243,6 @@ public class ExtendedShapelessRecipe implements CraftingRecipe
       return STREAM_CODEC;
     }
 
-    @SuppressWarnings("unchecked")
     private static final MapCodec<ExtendedShapelessRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
         instance.group(Codec.STRING.optionalFieldOf("group", "")
                 .forGetter(r->r.group),
