@@ -11,10 +11,8 @@ package wile.redstonepen.libmc;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -24,13 +22,10 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import wile.redstonepen.ModConstants;
 
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 public class Registries
 {
-  private static final Map<String, TagKey<Block>> registered_block_tag_keys = new HashMap<>();
-  private static final Map<String, TagKey<Item>> registered_item_tag_keys = new HashMap<>();
   private static final List<Tuple<String, Supplier<? extends Block>>> block_suppliers = new ArrayList<>();
   private static final List<Tuple<String, Supplier<? extends Item>>> item_suppliers = new ArrayList<>();
   private static final List<Tuple<String, Supplier<? extends BlockEntityType<?>>>> block_entity_type_suppliers = new ArrayList<>();
@@ -88,26 +83,11 @@ public class Registries
     public static BlockEntityType<?> getBlockEntityType(String block_name)
   { return registered_block_entity_types.get(block_name); }
 
-  public static MenuType<?> getMenuType(String name)
-  { return registered_menu_types.get(name); }
-
     public static BlockEntityType<?> getBlockEntityTypeOfBlock(String block_name)
   { return getBlockEntityType("tet_"+block_name); }
 
   public static BlockEntityType<?> getBlockEntityTypeOfBlock(Block block)
   { return getBlockEntityTypeOfBlock(BuiltInRegistries.BLOCK.getKey(block).getPath()); }
-
-  public static MenuType<?> getMenuTypeOfBlock(String name)
-  { return getMenuType("ct_"+name); }
-
-  public static MenuType<?> getMenuTypeOfBlock(Block block)
-  { return getMenuTypeOfBlock(BuiltInRegistries.BLOCK.getKey(block).getPath()); }
-
-  public static TagKey<Block> getBlockTagKey(String name)
-  { return registered_block_tag_keys.get(name); }
-
-  public static TagKey<Item> getItemTagKey(String name)
-  { return registered_item_tag_keys.get(name); }
 
     public static <T extends Item> void addItem(String registry_name, Supplier<T> supplier)
   { item_suppliers.add(new Tuple<>(registry_name, supplier)); }
@@ -116,12 +96,8 @@ public class Registries
     block_suppliers.add(new Tuple<>(registry_name, block_supplier));
     item_suppliers.add(new Tuple<>(registry_name, ()->new BlockItem(registered_blocks.get(registry_name), new Item.Properties())));
   }
-  public static <TB extends Block, TI extends Item> void addBlock(String registry_name, Supplier<TB> block_supplier, Supplier<TI> item_supplier)
-  {
-    block_suppliers.add(new Tuple<>(registry_name, block_supplier));
-    item_suppliers.add(new Tuple<>(registry_name, item_supplier));
-  }
-  public static <T extends BlockEntity> void addBlockEntityType(String registry_name, BlockEntityType.BlockEntitySupplier<T> ctor, String... block_names)
+
+    public static <T extends BlockEntity> void addBlockEntityType(String registry_name, BlockEntityType.BlockEntitySupplier<T> ctor, String... block_names)
   {
     block_entity_type_suppliers.add(new Tuple<>(registry_name, ()->{
       final Block[] blocks = Arrays.stream(block_names).map(s -> {
@@ -133,28 +109,15 @@ public class Registries
     }));
   }
 
-    public static void addMenuType(String registry_name, MenuType.MenuSupplier<?> supplier)
-  { menu_type_suppliers.add(new Tuple<>(registry_name, ()->new MenuType<>(supplier, FeatureFlagSet.of()))); }
-
-  public static void addRecipeSerializer(String registry_name, Supplier<? extends RecipeSerializer<?>> serializer_supplier)
+    public static void addRecipeSerializer(String registry_name, Supplier<? extends RecipeSerializer<?>> serializer_supplier)
   { recipe_serializers_suppliers.add(new Tuple<>(registry_name, serializer_supplier)); }
 
   // -------------------------------------------------------------------------------------------------------------
 
-  public static <TB extends Block> void addBlock(String registry_name, Supplier<TB> block_supplier, BiFunction<Block, Item.Properties, Item> item_builder)
-  { addBlock(registry_name, block_supplier, ()->item_builder.apply(registered_blocks.get(registry_name), new Item.Properties())); }
-
-  public static void addBlock(String registry_name, Supplier<? extends Block> block_supplier, BlockEntityType.BlockEntitySupplier<?> block_entity_ctor)
+    public static void addBlock(String registry_name, Supplier<? extends Block> block_supplier, BlockEntityType.BlockEntitySupplier<?> block_entity_ctor)
   {
     addBlock(registry_name, block_supplier);
     addBlockEntityType("tet_"+registry_name, block_entity_ctor, registry_name);
-  }
-
-  public static void addBlock(String registry_name, Supplier<? extends Block> block_supplier, BiFunction<Block, Item.Properties, Item> item_builder, BlockEntityType.BlockEntitySupplier<?> block_entity_ctor, MenuType.MenuSupplier<?> menu_type_supplier)
-  {
-    addBlock(registry_name, block_supplier, item_builder);
-    addBlockEntityType("tet_"+registry_name, block_entity_ctor, registry_name);
-    addMenuType("ct_"+registry_name, menu_type_supplier);
   }
 
 }

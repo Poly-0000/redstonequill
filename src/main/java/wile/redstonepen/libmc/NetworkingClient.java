@@ -10,10 +10,7 @@ package wile.redstonepen.libmc;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class NetworkingClient
@@ -29,31 +26,11 @@ public class NetworkingClient
     @OnlyIn(Dist.CLIENT)
     public static class PacketTileNotifyClientToServer extends Networking.PacketTileNotifyClientToServer
     {
-        public static void sendToServer(BlockPos pos, CompoundTag nbt)
-        {
-            if((pos==null) || (nbt==null)) return;
-            final CompoundTag payload = new CompoundTag();
-            payload.putLong("pos", pos.asLong());
-            payload.put("nbt", nbt);
-            send(PacketTileNotifyClientToServer.PACKET_ID, payload);
-        }
 
-        public static void sendToServer(BlockEntity te, CompoundTag nbt)
-        { if(te!=null) sendToServer(te.getBlockPos(), nbt); }
     }
     @OnlyIn(Dist.CLIENT)
     public static class PacketContainerSyncClientToServer extends Networking.PacketContainerSyncClientToServer
     {
-        public static void sendToServer(int container_id, CompoundTag nbt)
-        {
-            if(nbt==null) return;
-            final CompoundTag payload = new CompoundTag();
-            payload.putInt("cid", container_id);
-            payload.put("nbt", nbt);
-            send(PacketContainerSyncClientToServer.PACKET_ID, payload);
-        }
-        public static void sendToServer(AbstractContainerMenu container, CompoundTag nbt)
-        { sendToServer(container.containerId, nbt); }
     }
     @OnlyIn(Dist.CLIENT)
     public static class PacketNbtNotifyClientToServer extends Networking.PacketNbtNotifyClientToServer

@@ -43,12 +43,10 @@ public class ModContent
   public static void initReferences()
   {
     references.TRACK_BLOCK = (RedstoneTrack.RedstoneTrackBlock)Registries.getBlock("track");
-    references.BRIDGE_RELAY_BLOCK = (CircuitComponents.BridgeRelayBlock)Registries.getBlock("bridge_relay");
   }
     public static final class references
   {
     public static RedstoneTrack.RedstoneTrackBlock TRACK_BLOCK = null;
-    public static CircuitComponents.BridgeRelayBlock BRIDGE_RELAY_BLOCK = null;
   }
 
 }

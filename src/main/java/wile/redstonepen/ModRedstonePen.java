@@ -41,7 +41,6 @@ public class ModRedstonePen
     bus.addListener(LiveCycleEvents::onRegisterNetwork);
     bus.addListener(ModRedstonePen::onBuildCreativeTabContents);
   }
-    // TODO: Add quill/pen to normal redstone tab
     // TODO: Add Jade support
     // TODO: Make work with shaders (emissive texture)
     // TODO: Make redstone unplacable with config

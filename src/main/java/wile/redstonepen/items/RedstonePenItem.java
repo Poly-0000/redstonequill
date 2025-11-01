@@ -312,14 +312,7 @@ public class RedstonePenItem extends StandardItems.BaseItem
     }
   }
 
-  public static boolean isFullRedstone(ItemStack stack)
-  {
-    if(isPen(stack)) return (stack.getDamageValue() <= 0);
-    if(stack.getItem() == Items.REDSTONE) return (stack.getCount() >= stack.getMaxStackSize());
-    return false;
-  }
-
-  public static boolean isPen(ItemStack stack)
+    public static boolean isPen(ItemStack stack)
   { return (stack.getItem() instanceof RedstonePenItem); }
 
   private String powerFormatted(int p)

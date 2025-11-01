@@ -8,7 +8,6 @@
  */
 package wile.redstonepen.libmc;
 
-import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -26,7 +25,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -34,10 +32,6 @@ import java.util.function.Function;
 
 public class Guis
 {
-  // -------------------------------------------------------------------------------------------------------------------
-  // Gui base
-  // -------------------------------------------------------------------------------------------------------------------
-
   @OnlyIn(Dist.CLIENT)
   public static abstract class ContainerGui<T extends AbstractContainerMenu> extends AbstractContainerScreen<T>
   {
@@ -45,16 +39,6 @@ public class Guis
     protected final Player player_;
     protected final Guis.BackgroundImage gui_background_;
     protected final TooltipDisplay tooltip_ = new TooltipDisplay();
-
-    public ContainerGui(T menu, Inventory player_inv, Component title, String background_image, int width, int height)
-    {
-      super(menu, player_inv, title);
-      this.background_image_ = ResourceLocation.fromNamespaceAndPath(Auxiliaries.modid(), background_image);
-      this.player_ = player_inv.player;
-      this.imageWidth = width;
-      this.imageHeight = height;
-      gui_background_ = new Guis.BackgroundImage(background_image_, width, height, Coord2d.ORIGIN);
-    }
 
     public ContainerGui(T menu, Inventory player_inv, Component title, String background_image)
     {
@@ -91,46 +75,21 @@ public class Guis
       RenderSystem.enableBlend();
       RenderSystem.defaultBlendFunc();
       RenderSystem.enableDepthTest();
-      gui_background_.draw(gg, this);
-      renderBgWidgets(gg, partialTicks, mouseX, mouseY);
+      gui_background_.draw(gg);
+      renderBgWidgets();
       RenderSystem.disableBlend();
     }
 
-    public final ResourceLocation getBackgroundImage()
-    { return background_image_; }
-
-    public final int getGuiLeft()
+      public final int getGuiLeft()
     { return leftPos; }
 
     public final int getGuiTop()
     { return topPos; }
 
-    protected void renderBgWidgets(GuiGraphics gg, float partialTicks, int mouseX, int mouseY)
+    protected void renderBgWidgets()
     {}
 
-    protected void renderItemTemplate(GuiGraphics gg, ItemStack stack, int x, int y)
-    {
-      final int x0 = getGuiLeft();
-      final int y0 = getGuiTop();
-      RenderSystem.disableColorLogicOp();
-      RenderSystem.enableDepthTest();
-      RenderSystem.defaultBlendFunc();
-      RenderSystem.setShaderColor(0.8f, 0.8f, 0.8f, 0.4f);
-      RenderSystem.enableBlend();
-      gg.renderItem(stack, x0+x, y0+y);
-      RenderSystem.colorMask(true, true, true, true);
-      RenderSystem.setShaderColor(0.7f, 0.7f, 0.7f, 0.4f);
-      RenderSystem.setShaderTexture(0, background_image_);
-      gg.blit(background_image_, x0+x, y0+y, x, y, 16, 16);
-      RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-      RenderSystem.disableBlend();
-    }
   }
-
-  // -------------------------------------------------------------------------------------------------------------------
-  // Gui elements
-  // -------------------------------------------------------------------------------------------------------------------
-
   @OnlyIn(Dist.CLIENT)
   public static class Coord2d
   {
@@ -154,15 +113,7 @@ public class Guis
     public UiWidget(int x, int y, int width, int height, Component title)
     { super(x, y, width, height, title); mc_ = Minecraft.getInstance(); }
 
-    public UiWidget init(Screen parent)
-    {
-      this.parent_ = parent;
-      this.setX(getX() + ((parent instanceof ContainerGui<?>) ? ((ContainerGui<?>)parent).getGuiLeft() : 0));
-      this.setY(getY() + ((parent instanceof ContainerGui<?>) ? ((ContainerGui<?>)parent).getGuiTop() : 0));
-      return this;
-    }
-
-    public UiWidget init(Screen parent, Coord2d position)
+      public UiWidget init(Screen parent, Coord2d position)
     {
       this.parent_ = parent;
       this.setX(position.x + ((parent instanceof ContainerGui<?>) ? ((ContainerGui<?>)parent).getGuiLeft() : 0));
@@ -170,31 +121,13 @@ public class Guis
       return this;
     }
 
-    public final UiWidget tooltip(Function<UiWidget,Component> tip)
-    { tooltip_ = tip; return this; }
-
-    public final UiWidget tooltip(Component tip)
-    { tooltip_ = (o)->tip; return this; }
-
-    public final int getWidth()
+      public final int getWidth()
     { return this.width; }
 
     public final int getHeight()
     { return this.height; }
 
-    public Coord2d getMousePosition()
-    {
-      final Window win = mc_.getWindow();
-      return Coord2d.of(
-              Mth.clamp(((int)(mc_.mouseHandler.xpos() * (double)win.getGuiScaledWidth() / (double)win.getScreenWidth()))-getX(), -1, this.width+1),
-              Mth.clamp(((int)(mc_.mouseHandler.ypos() * (double)win.getGuiScaledHeight() / (double)win.getScreenHeight()))-getY(), -1, this.height+1)
-      );
-    }
-
-    protected final Coord2d screenCoordinates(Coord2d xy, boolean reverse)
-    { return (reverse) ? (Coord2d.of(xy.x+getX(), xy.y+getY())) : (Coord2d.of(xy.x-getX(), xy.y-getY())); }
-
-    public UiWidget show()
+      public UiWidget show()
     { visible = true; return this; }
 
     public UiWidget hide()
@@ -237,19 +170,7 @@ public class Guis
       texture_position_filled_ = filled_texture_xy;
     }
 
-    public HorizontalProgressBar setProgress(double progress)
-    { progress_ = Mth.clamp(progress, 0, progress_max_); return this; }
-
-    public double getProgress()
-    { return progress_; }
-
-    public HorizontalProgressBar setMaxProgress(double progress)
-    { progress_max_ = Math.max(progress, 0); return this; }
-
-    public double getMaxProgress()
-    { return progress_max_; }
-
-    public HorizontalProgressBar show()
+      public HorizontalProgressBar show()
     { visible = true; return this; }
 
     public HorizontalProgressBar hide()
@@ -293,7 +214,7 @@ public class Guis
       visible = true;
     }
 
-    public void draw(GuiGraphics gg, Screen parent)
+    public void draw(GuiGraphics gg)
     {
       if(!visible) return;
       RenderSystem.setShaderTexture(0, atlas_);
@@ -318,16 +239,7 @@ public class Guis
       atlas_ = atlas;
     }
 
-    public boolean checked()
-    { return checked_; }
-
-    public CheckBox checked(boolean on)
-    { checked_ = on; return this; }
-
-    public CheckBox onclick(Consumer<CheckBox> action)
-    { on_click_ = action; return this; }
-
-    @Override
+      @Override
     public void onClick(double mouseX, double mouseY)
     { checked_ = !checked_; on_click_.accept(this); }
 
@@ -360,9 +272,6 @@ public class Guis
       texture_position_ = atlas_texture_position;
       atlas_ = atlas;
     }
-
-    public ImageButton onclick(Consumer<ImageButton> action)
-    { on_click_ = action; return this; }
 
     @Override
     public void onClick(double mouseX, double mouseY)
@@ -419,10 +328,5 @@ public class Guis
   public static class TextBox extends net.minecraft.client.gui.components.EditBox
   {
     public TextBox(int x, int y, int width, int height, Component title, Font font) { super(font, x, y, width, height, title); setBordered(false); }
-    public TextBox withMaxLength(int len) { super.setMaxLength(len); return this; }
-    public TextBox withBordered(boolean b) { super.setBordered(b); return this; }
-    public TextBox withValue(String s) { super.setValue(s); return this; }
-    public TextBox withEditable(boolean e) { super.setEditable(e); return this; }
-    public TextBox withResponder(Consumer<String> r) { super.setResponder(r); return this; }
   }
 }

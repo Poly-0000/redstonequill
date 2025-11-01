@@ -80,10 +80,6 @@ public class Inventories
       this.num_rows = num_rows;
     }
 
-      public final ItemStack get(int index)
-    { return inventory_.getItem(offset_+index); }
-
-      // Container ------------------------------------------------------------------------------------------------------
 
     @Override
     public void clearContent()
@@ -277,17 +273,7 @@ public class Inventories
     public ItemStack insert(final ItemStack stack_to_move)
     { return insert(stack_to_move, false, 0, false, true); }
 
-    /**
-     * Extracts maximum amount of items from the inventory_.
-     * The first non-empty stack defines the item.
-     */
-    public ItemStack extract(int amount)
-    { return extract(amount, false); }
-
-    public ItemStack extract(int amount, boolean random)
-    { return extract(amount, false, false); }
-
-    public ItemStack extract(int amount, boolean random, boolean simulate)
+      public ItemStack extract(int amount, boolean random, boolean simulate)
     {
       ItemStack out_stack = ItemStack.EMPTY;
       int offset = random ? (int)(Math.random()*size_) : 0;
@@ -329,10 +315,7 @@ public class Inventories
       return out_stack;
     }
 
-    public ItemStack extract(final ItemStack request_stack)
-    { return extract(request_stack, false); }
-
-    public ItemStack extract(final ItemStack request_stack, boolean simulate)
+      public ItemStack extract(final ItemStack request_stack, boolean simulate)
     {
       if(request_stack.isEmpty()) return ItemStack.EMPTY;
       List<ItemStack> matches = new ArrayList<>();
@@ -364,39 +347,6 @@ public class Inventories
       }
     }
 
-    //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * Moves items from this inventory_ range to another. Returns true if something was moved
-     * (if the inventories should be marked dirty).
-     */
-    public boolean move(int index, final InventoryRange target_range, boolean all_identical_stacks, boolean only_fillup, boolean reverse, boolean force_group_stacks)
-    {
-      final ItemStack source_stack = getItem(index);
-      if(source_stack.isEmpty()) return false;
-      if(!all_identical_stacks) {
-        ItemStack remaining = target_range.insert(source_stack, only_fillup, 0, reverse, force_group_stacks);
-        setItem(index, remaining);
-        return (remaining.getCount() != source_stack.getCount());
-      } else {
-        ItemStack remaining = source_stack.copy();
-        setItem(index, ItemStack.EMPTY);
-        final ItemStack ref_stack = remaining.copy();
-        ref_stack.setCount(ref_stack.getMaxStackSize());
-        for(int i=size_; (i>0) && (!remaining.isEmpty()); --i) {
-          remaining = target_range.insert(remaining, only_fillup, 0, reverse, force_group_stacks);
-          if(!remaining.isEmpty()) break;
-          remaining = this.extract(ref_stack);
-        }
-        if(!remaining.isEmpty()) {
-          setItem(index, remaining); // put back
-        }
-        return (remaining.getCount() != source_stack.getCount());
-      }
-    }
-
-    public boolean move(int index, final InventoryRange target_range)
-    { return move(index, target_range, false, false, false, true); }
 
 
   }

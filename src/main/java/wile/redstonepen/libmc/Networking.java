@@ -20,7 +20,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import wile.redstonepen.ModConstants;
@@ -44,10 +43,9 @@ public class Networking
           switch(unifed_payload.data().id()) {
             case PacketTileNotifyClientToServer.PACKET_ID -> {
               final BlockPos pos = BlockPos.of(payload.getLong("pos"));
-              final CompoundTag nbt = payload.getCompound("nbt");
               final BlockEntity te = world.getBlockEntity(pos);
               if(!(te instanceof IPacketTileNotifyReceiver)) return;
-              ((IPacketTileNotifyReceiver)te).onClientPacketReceived(player, nbt);
+              ((IPacketTileNotifyReceiver)te).onClientPacketReceived();
             }
             case PacketContainerSyncClientToServer.PACKET_ID -> {
               final int container_id = payload.getInt("cid");
@@ -150,7 +148,7 @@ public class Networking
   public interface IPacketTileNotifyReceiver
   {
     default void onServerPacketReceived(CompoundTag nbt) {}
-    default void onClientPacketReceived(Player player, CompoundTag nbt) {}
+    default void onClientPacketReceived() {}
   }
 
   public static class PacketTileNotifyClientToServer
@@ -191,23 +189,7 @@ public class Networking
   {
     protected static final String PACKET_ID = "css2c";
 
-    public static void sendToPlayer(ServerPlayer player, int windowId, CompoundTag nbt)
-    {
-      if(nbt==null || player==null) return;
-      final CompoundTag payload = new CompoundTag();
-      payload.putInt("cid", windowId);
-      payload.put("nbt", nbt);
-      sendToClient(player, PACKET_ID, payload);
-    }
-
-    public static void sendToPlayer(ServerPlayer player, AbstractContainerMenu container, CompoundTag nbt)
-    { if(container!=null) sendToPlayer(player, container.containerId, nbt); }
-
   }
-
-  //--------------------------------------------------------------------------------------------------------------------
-  // World notifications
-  //--------------------------------------------------------------------------------------------------------------------
 
   public static class PacketNbtNotifyClientToServer
   {
@@ -220,14 +202,6 @@ public class Networking
     protected static final String PACKET_ID = "nns2c";
     public static final Map<String, Consumer<CompoundTag>> handlers = new HashMap<>();
 
-    public static void sendToPlayer(Player player, CompoundTag nbt)
-    {
-      if((nbt==null) || (!(player instanceof ServerPlayer splayer))) return;
-      sendToClient(splayer, PACKET_ID, nbt);
-    }
-
-    public static void sendToPlayers(Level world, CompoundTag nbt)
-    { if(world!=null) for(Player player: world.players()) sendToPlayer(player, nbt); }
   }
 
   //--------------------------------------------------------------------------------------------------------------------
@@ -238,15 +212,11 @@ public class Networking
   {
     protected static final String PACKET_ID = "otms2c";
     protected static BiConsumer<Component, Integer> handler_ = null;
-    public static final int DISPLAY_TIME_MS = 3000;
 
     public static void setHandler(BiConsumer<Component, Integer> handler)
     { if(handler_==null) handler_ = handler; }
 
-    public static void sendToPlayer(ServerPlayer player, Component message)
-    { sendToPlayer(player, message, DISPLAY_TIME_MS); }
-
-    public static void sendToPlayer(ServerPlayer player, Component message, int delay)
+      public static void sendToPlayer(ServerPlayer player, Component message, int delay)
     {
       if(Auxiliaries.isEmpty(message)) return;
       try {

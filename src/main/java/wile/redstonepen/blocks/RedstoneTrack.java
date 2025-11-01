@@ -1019,10 +1019,6 @@ public class RedstoneTrack
             neighbors.add(new Neighbor(ext_pos, ext_side, p_track, true, false));
             pmax = Math.max(pmax, p_track-1);
           }
-        } else if(ext_state.is(ModContent.references.BRIDGE_RELAY_BLOCK)) {
-          final int p_nowire = getNonWireSignal(world, ext_pos, ext_side.getOpposite());
-          neighbors.add(new Neighbor(ext_pos, ext_side, p_nowire, true, false));
-          pmax = Math.max(pmax, p_nowire);
         } else {
           final int p_nowire = getNonWireSignal(world, ext_pos, ext_side.getOpposite());
           final boolean weak_updates = (!ext_state.isSignalSource()) && (p_nowire == 0) && ext_state.isRedstoneConductor(world, ext_pos);

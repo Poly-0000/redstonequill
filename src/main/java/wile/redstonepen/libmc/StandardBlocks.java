@@ -31,7 +31,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -39,23 +38,17 @@ import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import org.jetbrains.annotations.Nullable;
 import java.util.*;
-import java.util.function.Function;
 
 public class StandardBlocks
 {
   public static final long CFG_DEFAULT                    = 0x0000000000000000L; // no special config
   public static final long CFG_WATERLOGGABLE              = 0x0000000000000008L; // The derived block extends IWaterLoggable
-  public static final long CFG_HORIZIONTAL                = 0x0000000000000010L; // horizontal block, affects bounding box calculation at construction time and placement
-  public static final long CFG_LOOK_PLACEMENT             = 0x0000000000000020L; // placed in direction the player is looking when placing.
-  public static final long CFG_OPPOSITE_PLACEMENT         = 0x0000000000000080L; // placed in the opposite direction of the face the player clicked.
-  public static final long CFG_FLIP_PLACEMENT_SHIFTCLICK  = 0x0000000000000200L; // placement direction flipped if player is sneaking
   public static final long CFG_AI_PASSABLE                = 0x0000000000000800L; // does not block movement path for AI, needed for non-opaque blocks with collision shapes not thin at the bottom or one side.
 
   public interface IStandardBlock
@@ -153,10 +146,7 @@ public class StandardBlocks
     public Cutout(long conf, BlockBehaviour.Properties properties, AABB aabb)
     { this(conf, properties, Shapes.create(aabb)); }
 
-    public Cutout(long conf, BlockBehaviour.Properties properties, AABB[] aabbs)
-    { this(conf, properties, Arrays.stream(aabbs).map(Shapes::create).reduce(Shapes.empty(), (shape, aabb)->Shapes.joinUnoptimized(shape, aabb, BooleanOp.OR))); }
-
-    public Cutout(long conf, BlockBehaviour.Properties properties, VoxelShape voxel_shape)
+      public Cutout(long conf, BlockBehaviour.Properties properties, VoxelShape voxel_shape)
     { super(conf, properties); vshape = voxel_shape; }
 
     @Override
@@ -211,62 +201,12 @@ public class StandardBlocks
       return state;
     }
   }
-
   public static class WaterLoggable extends Cutout implements IStandardBlock
   {
     public WaterLoggable(long config, BlockBehaviour.Properties properties)
     { super(config|CFG_WATERLOGGABLE, properties); }
-
       @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder)
     { super.createBlockStateDefinition(builder); builder.add(WATERLOGGED); }
   }
-
-  public static class Directed extends Cutout implements IStandardBlock
-  {
-    public static final DirectionProperty FACING = BlockStateProperties.FACING;
-    protected final Map<BlockState,VoxelShape> vshapes;
-
-    public Directed(long config, BlockBehaviour.Properties properties, final Function<List<BlockState>, Map<BlockState,VoxelShape>> shape_supplier)
-    {
-      super(config, properties);
-      registerDefaultState(super.defaultBlockState().setValue(FACING, Direction.UP));
-      vshapes = shape_supplier.apply(getStateDefinition().getPossibleStates());
-    }
-
-      @Override
-    public VoxelShape getShape(BlockState state, BlockGetter source, BlockPos pos, CollisionContext selectionContext)
-    { return vshapes.get(state); }
-
-    @Override
-    public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext selectionContext)
-    { return getShape(state, world, pos, selectionContext); }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder)
-    { super.createBlockStateDefinition(builder); builder.add(FACING); }
-
-    @Override
-    @Nullable
-    public BlockState getStateForPlacement(BlockPlaceContext context)
-    {
-      BlockState state = super.getStateForPlacement(context);
-      if(state == null) return null;
-      Direction facing = context.getClickedFace();
-      if((config & (CFG_HORIZIONTAL|CFG_LOOK_PLACEMENT)) == (CFG_HORIZIONTAL|CFG_LOOK_PLACEMENT)) {
-        // horizontal placement in direction the player is looking
-        facing = context.getHorizontalDirection();
-      } else if((config & (CFG_HORIZIONTAL|CFG_LOOK_PLACEMENT)) == (CFG_HORIZIONTAL)) {
-        // horizontal placement on a face
-        if(((facing==Direction.UP)||(facing==Direction.DOWN))) return null;
-      } else if((config & CFG_LOOK_PLACEMENT)!=0) {
-        // placement in direction the player is looking, with up and down
-        facing = context.getNearestLookingDirection();
-      }
-      if((config & CFG_OPPOSITE_PLACEMENT)!=0) facing = facing.getOpposite();
-      if(((config & CFG_FLIP_PLACEMENT_SHIFTCLICK) != 0) && (context.getPlayer()!=null) &&  (context.getPlayer().isShiftKeyDown())) facing = facing.getOpposite();
-      return state.setValue(FACING, facing);
-    }
-  }
-
 }

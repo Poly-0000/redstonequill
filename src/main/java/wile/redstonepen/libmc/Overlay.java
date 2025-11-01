@@ -33,14 +33,8 @@ public class Overlay
   public static void show(ServerPlayer player, final Component message, int delay)
   { Networking.OverlayTextMessage.sendToPlayer(player, message, delay); }
 
-  public static void show(BlockState state, BlockPos pos)
-  { show(state, pos, 100); }
 
-  public static void show(BlockState state, BlockPos pos, int displayTimeoutMs)
-  { net.minecraft.client.Minecraft.getInstance().execute(()->TextOverlayGui.show(state, pos, displayTimeoutMs)); } // Only called when client side
-
-
-  private static double overlay_y_ = 0.75;
+    private static double overlay_y_ = 0.75;
 
     public static void on_config(double overlay_y)
   {
@@ -73,10 +67,7 @@ public class Overlay
       public static synchronized void show(Component s, int displayTimeoutMs)
     { text_ = (s==null)?(EMPTY_TEXT):(s.copy()); text_deadline_ = System.currentTimeMillis() + displayTimeoutMs; }
 
-      public static synchronized void show(BlockState state, BlockPos pos, int displayTimeoutMs)
-    { pos_ = new BlockPos(pos); state_ = state; state_deadline_ = System.currentTimeMillis() + displayTimeoutMs; }
-
-    private static synchronized Optional<Tuple<BlockState,BlockPos>> state_pos()
+      private static synchronized Optional<Tuple<BlockState,BlockPos>> state_pos()
     { return ((state_deadline_ < System.currentTimeMillis()) || (state_==EMPTY_STATE)) ? Optional.empty() : Optional.of(new Tuple<>(state_, pos_)); }
 
     TextOverlayGui()
