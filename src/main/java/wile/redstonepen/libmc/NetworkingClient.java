@@ -13,11 +13,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.nbt.CompoundTag;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-public class NetworkingClient
-{
+public class NetworkingClient {
     @OnlyIn(Dist.CLIENT)
-    private static void send(String packet_id, CompoundTag payload_nbt)
-    {
+    private static void send(String packet_id, CompoundTag payload_nbt) {
         PacketDistributor.sendToServer(new Networking.UnifiedPayload(new Networking.UnifiedPayload.UnifiedData(packet_id, payload_nbt)));
     }
 }

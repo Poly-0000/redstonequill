@@ -6,7 +6,6 @@
  */
 package wile.redstonepen;
 
-public class ModConstants
-{
-  public static final String MODID = "redstonepen";
+public class ModConstants {
+    public static final String MODID = "redstonepen";
 }

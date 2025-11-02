@@ -21,58 +21,52 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import wile.redstonepen.blocks.RedstoneTrack;
-import wile.redstonepen.libmc.Auxiliaries;
 import wile.redstonepen.libmc.Registries;
 
-@Mod("redstonepen")
-public class ModRedstonePen
-{
-  public ModRedstonePen(IEventBus bus)
-  {
-    Auxiliaries.init();
-    ModContent.init();
-    bus.addListener(LiveCycleEvents::onRegister);
-    bus.addListener(LiveCycleEvents::onRegisterNetwork);
-    bus.addListener(ModRedstonePen::onBuildCreativeTabContents);
-  }
+@Mod(ModRedstonePen.MODID)
+public class ModRedstonePen {
     // TODO: Add Jade support
     // TODO: Make work with shaders (emissive texture)
     // TODO: Make redstone unplacable with config
     // TODO: Check why redstone is not updating properly
     // TODO: Color code lines
+    public static final String MODID = "redstonepen";
+
+    public ModRedstonePen(IEventBus bus) {
+        ModContent.init();
+        bus.addListener(LiveCycleEvents::onRegister);
+        bus.addListener(LiveCycleEvents::onRegisterNetwork);
+        bus.addListener(ModRedstonePen::onBuildCreativeTabContents);
+    }
+
     public static void onBuildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS) {
-            event.accept(Registries.getItem("quill"));
+        if (event.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS) event.accept(Registries.getItem("quill"));
+    }
+
+    private static class LiveCycleEvents {
+        private static void onRegister(RegisterEvent event) {
+            final String registry_name = event.getRegistry().key().location().toString();
+            if (!registry_name.equals("minecraft:block")) return;
+            Registries.instantiateAll();
+            ModContent.initReferences();
+        }
+
+        private static void onRegisterNetwork(final RegisterPayloadHandlersEvent event) {
+            PayloadRegistrar registrar = event.registrar("v1");
+            wile.redstonepen.libmc.Networking.init(registrar);
         }
     }
-  private static class LiveCycleEvents
-  {
-    private static void onRegister(RegisterEvent event)
-    {
-      final String registry_name = event.getRegistry().key().location().toString();
-      if(!registry_name.equals("minecraft:block")) return;
-      Registries.instantiateAll();
-      ModContent.initReferences();
-    }
-    private static void onRegisterNetwork(final RegisterPayloadHandlersEvent event)
-    {
-      PayloadRegistrar registrar = event.registrar("v1");
-      wile.redstonepen.libmc.Networking.init(registrar);
-    }
-  }
-  @EventBusSubscriber(modid=ModConstants.MODID, value=Dist.CLIENT)
-  public static class ClientEvents
-  {
-    @SubscribeEvent
-    public static void onClientSetup(final FMLClientSetupEvent event)
-    {
-      BlockEntityRenderers.register((BlockEntityType<RedstoneTrack.TrackBlockEntity>)Registries.getBlockEntityTypeOfBlock("track"), wile.redstonepen.detail.ModRenderers.TrackTer::new);
-    }
-    @SubscribeEvent
-    public static void onRegisterModels(final ModelEvent.RegisterAdditional event)
-    {
-      wile.redstonepen.detail.ModRenderers.TrackTer.registerModels().forEach(event::register);
-    }
-  }
 
+    @EventBusSubscriber(modid = ModConstants.MODID, value = Dist.CLIENT)
+    public static class ClientEvents {
+        @SubscribeEvent
+        public static void onClientSetup(final FMLClientSetupEvent event) {
+            BlockEntityRenderers.register((BlockEntityType<RedstoneTrack.TrackBlockEntity>) Registries.getBlockEntityTypeOfBlock("track"), wile.redstonepen.detail.ModRenderers.TrackTer::new);
+        }
+
+        @SubscribeEvent
+        public static void onRegisterModels(final ModelEvent.RegisterAdditional event) {
+            wile.redstonepen.detail.ModRenderers.TrackTer.registerModels().forEach(event::register);
+        }
+    }
 }

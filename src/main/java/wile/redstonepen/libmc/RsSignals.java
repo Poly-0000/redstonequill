@@ -12,10 +12,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class RsSignals
-{
-    public static boolean canEmitWeakPower(BlockState state, Level world, BlockPos pos)
-  {
-    return state.isRedstoneConductor(world, pos);
-  }
+public class RsSignals {
+    public static boolean canEmitWeakPower(BlockState state, Level world, BlockPos pos) {
+        return state.isRedstoneConductor(world, pos);
+    }
 }
