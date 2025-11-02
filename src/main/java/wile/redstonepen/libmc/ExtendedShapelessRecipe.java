@@ -227,8 +227,6 @@ public class ExtendedShapelessRecipe implements CraftingRecipe
     }
   }
 
-  //--------------------------------------------------------------------------------------------------------------------
-
   public static final ExtendedShapelessRecipe.Serializer SERIALIZER = new ExtendedShapelessRecipe.Serializer();
 
   public static class Serializer implements RecipeSerializer<ExtendedShapelessRecipe>

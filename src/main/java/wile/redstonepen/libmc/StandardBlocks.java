@@ -8,17 +8,12 @@
  */
 package wile.redstonepen.libmc;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -76,11 +71,6 @@ public class StandardBlocks
       registerDefaultState(state);
     }
     @Override
-    @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> tooltip, TooltipFlag flag)
-    { Auxiliaries.Tooltip.addInformation(stack, tooltip, flag, true); }
-
-    @Override
     public boolean isPathfindable(BlockState state, PathComputationType type)
     { return ((config & CFG_AI_PASSABLE)!=0) && (super.isPathfindable(state, type)); }
 
@@ -133,9 +123,7 @@ public class StandardBlocks
     @Override // SimpleWaterloggedBlock
     public Optional<SoundEvent> getPickupSound()
     { return ((config & CFG_WATERLOGGABLE)!=0) ? (SimpleWaterloggedBlock.super.getPickupSound()) : Optional.empty(); }
-
   }
-
   public static class Cutout extends BaseBlock implements IStandardBlock
   {
     private final VoxelShape vshape;

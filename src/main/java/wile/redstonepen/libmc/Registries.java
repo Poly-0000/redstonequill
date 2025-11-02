@@ -108,16 +108,11 @@ public class Registries
       return BlockEntityType.Builder.of(ctor, blocks).build(null);
     }));
   }
-
     public static void addRecipeSerializer(String registry_name, Supplier<? extends RecipeSerializer<?>> serializer_supplier)
   { recipe_serializers_suppliers.add(new Tuple<>(registry_name, serializer_supplier)); }
-
-  // -------------------------------------------------------------------------------------------------------------
-
     public static void addBlock(String registry_name, Supplier<? extends Block> block_supplier, BlockEntityType.BlockEntitySupplier<?> block_entity_ctor)
   {
     addBlock(registry_name, block_supplier);
     addBlockEntityType("tet_"+registry_name, block_entity_ctor, registry_name);
   }
-
 }

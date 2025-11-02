@@ -9,5 +9,4 @@ package wile.redstonepen;
 public class ModConstants
 {
   public static final String MODID = "redstonepen";
-  public static final String MODNAME = "Redstone Pen";
 }

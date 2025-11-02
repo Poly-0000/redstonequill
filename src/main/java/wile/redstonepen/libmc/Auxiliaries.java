@@ -14,7 +14,6 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -22,8 +21,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -32,13 +29,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.slf4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
-import org.jetbrains.annotations.Nullable;
 import wile.redstonepen.ModConstants;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,9 +52,6 @@ public class Auxiliaries
   public static String modid()
   { return ModConstants.MODID; }
 
-  public static Logger logger()
-  { return logger; }
-
     public static java.nio.file.Path getGameDirectory()
   {
     // return FabricLoader.getInstance().getGameDir(); // Fabric
@@ -78,14 +67,6 @@ public class Auxiliaries
     return (InputConstants.isKeyDown(net.minecraft.client.Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
       InputConstants.isKeyDown(net.minecraft.client.Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT));
   }
-
-  @OnlyIn(Dist.CLIENT)
-  public static boolean isCtrlDown()
-  {
-    return (InputConstants.isKeyDown(net.minecraft.client.Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) ||
-      InputConstants.isKeyDown(net.minecraft.client.Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_RIGHT_CONTROL));
-  }
-
   @OnlyIn(Dist.CLIENT)
   public static Optional<String> getClipboard()
   { return Optional.of(net.minecraft.client.gui.font.TextFieldHelper.getClipboardContents(net.minecraft.client.Minecraft.getInstance())); }
@@ -94,10 +75,7 @@ public class Auxiliaries
   public static boolean setClipboard(String text)
   { net.minecraft.client.gui.font.TextFieldHelper.setClipboardContents(net.minecraft.client.Minecraft.getInstance(), text); return true; }
 
-  public static void logInfo(final String msg)
-  { logger.info(msg); }
-
-  public static void logWarn(final String msg)
+    public static void logWarn(final String msg)
   { logger.warn(msg); }
 
   public static void logError(final String msg)
@@ -134,55 +112,10 @@ public class Auxiliaries
       .collect(Collectors.toList());
   }
 
-    public static boolean isEmpty(Component component)
-  { return component.getSiblings().isEmpty() && component.getString().isEmpty(); }
-
-  public static final class Tooltip
-  {
-    @OnlyIn(Dist.CLIENT)
-    public static boolean extendedTipCondition()
-    { return isShiftDown() && !isCtrlDown(); }
-
-    @OnlyIn(Dist.CLIENT)
-    public static boolean helpCondition()
-    { return isShiftDown() && isCtrlDown(); }
-
-    @OnlyIn(Dist.CLIENT)
-    public static boolean addInformation(@Nullable String advancedTooltipTranslationKey, @Nullable String helpTranslationKey, List<Component> tooltip, TooltipFlag flag, boolean addAdvancedTooltipHints)
-    {
-      // Note: intentionally not using keybinding here, this must be `control` or `shift`.
-      final boolean help_available = (helpTranslationKey != null) && Auxiliaries.hasTranslation(helpTranslationKey + ".help");
-      final boolean tip_available = (advancedTooltipTranslationKey != null) && Auxiliaries.hasTranslation(helpTranslationKey + ".tip");
-      if((!help_available) && (!tip_available)) return false;
-      MutableComponent tip_text = Component.empty();
-      if(helpCondition()) {
-        if(help_available) tip_text = Component.literal(localize(helpTranslationKey + ".help"));
-      } else if(extendedTipCondition()) {
-        if(tip_available) tip_text = Component.literal(localize(advancedTooltipTranslationKey + ".tip"));
-      } else if(addAdvancedTooltipHints) {
-        if(tip_available) tip_text = Component.literal(localize(modid() + ".tooltip.hint.extended") + (help_available ? " " : ""));
-        if(help_available) tip_text.append(Component.literal(localize(modid() + ".tooltip.hint.help")));
-      }
-      if(isEmpty(tip_text)) return false;
-      tooltip.addAll(wrapText(tip_text, 50));
-      return true;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static boolean addInformation(ItemStack stack, List<Component> tooltip, TooltipFlag flag, boolean addAdvancedTooltipHints)
-    { return addInformation(stack.getDescriptionId(), stack.getDescriptionId(), tooltip, flag, addAdvancedTooltipHints); }
-  }
-
-  public static void playerChatMessage(final Player player, final String message)
+    public static void playerChatMessage(final Player player, final String message)
   { player.displayClientMessage(Component.translatable(message.trim()), true); }
 
-  public static @Nullable Component unserializeTextComponent(String serialized, HolderLookup.Provider ra)
-  { return Component.Serializer.fromJson(serialized, ra); }
-
-  public static String serializeTextComponent(Component tc, HolderLookup.Provider ra)
-  { return (tc==null) ? ("") : (Component.Serializer.toJson(tc, ra)); }
-
-  public static ResourceLocation getResourceLocation(Item item)
+    public static ResourceLocation getResourceLocation(Item item)
   { return BuiltInRegistries.ITEM.getKey(item); }
 
     public static AABB getPixeledAABB(double x0, double y0, double z0, double x1, double y1, double z1)
@@ -256,31 +189,6 @@ public class Auxiliaries
     VoxelShape shape = Shapes.empty();
     for(AABB aabb: aabbs) shape = Shapes.joinUnoptimized(shape, Shapes.create(aabb), BooleanOp.OR);
     return shape;
-  }
-
-  public static String loadResourceText(InputStream is)
-  {
-    try {
-      if(is==null) return "";
-      BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-      return br.lines().collect(Collectors.joining("\n"));
-    } catch(Throwable e) {
-      return "";
-    }
-  }
-
-  public static String loadResourceText(String path)
-  { return loadResourceText(Auxiliaries.class.getResourceAsStream(path)); }
-
-  public static void logGitVersion()
-  {
-    try {
-      // Done during construction to have an exact version in case of a crash while registering.
-      String version = Auxiliaries.loadResourceText("/.gitversion-" + ModConstants.MODID).trim();
-      logInfo(ModConstants.MODNAME+((version.isEmpty())?(" (dev build)"):(" GIT id #"+version)) + ".");
-    } catch(Throwable e) {
-      // (void)e; well, then not. Priority is not to get unneeded crashes because of version logging.
-    }
   }
 
 }

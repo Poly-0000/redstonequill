@@ -10,11 +10,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -24,8 +22,6 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import wile.redstonepen.blocks.RedstoneTrack;
 import wile.redstonepen.libmc.Auxiliaries;
-import wile.redstonepen.libmc.Networking;
-import wile.redstonepen.libmc.Overlay;
 import wile.redstonepen.libmc.Registries;
 
 @Mod("redstonepen")
@@ -34,7 +30,6 @@ public class ModRedstonePen
   public ModRedstonePen(IEventBus bus)
   {
     Auxiliaries.init();
-    Auxiliaries.logGitVersion();
     Registries.init();
     ModContent.init();
     bus.addListener(LiveCycleEvents::onRegister);
@@ -65,7 +60,6 @@ public class ModRedstonePen
     {
       PayloadRegistrar registrar = event.registrar("v1");
       wile.redstonepen.libmc.Networking.init(registrar);
-      wile.redstonepen.libmc.NetworkingClient.clientInit();
     }
   }
   @EventBusSubscriber(modid=ModConstants.MODID, value=Dist.CLIENT)
@@ -74,8 +68,6 @@ public class ModRedstonePen
     @SubscribeEvent
     public static void onClientSetup(final FMLClientSetupEvent event)
     {
-      Networking.OverlayTextMessage.setHandler(Overlay.TextOverlayGui::show);
-      Overlay.on_config(0.75);
       BlockEntityRenderers.register((BlockEntityType<RedstoneTrack.TrackBlockEntity>)Registries.getBlockEntityTypeOfBlock("track"), wile.redstonepen.detail.ModRenderers.TrackTer::new);
     }
     @SubscribeEvent
@@ -84,22 +76,5 @@ public class ModRedstonePen
       wile.redstonepen.detail.ModRenderers.TrackTer.registerModels().forEach(event::register);
     }
   }
-  @EventBusSubscriber(modid=ModConstants.MODID, value=Dist.CLIENT)
-  public static class ClientGameEvents
-  {
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public static void onRenderGui(net.neoforged.neoforge.client.event.RenderGuiEvent.Post event)
-    {
-      Overlay.TextOverlayGui.INSTANCE.onRenderGui(event.getGuiGraphics());
-    }
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public static void onRenderWorldOverlay(net.neoforged.neoforge.client.event.RenderLevelStageEvent event)
-    {
-      if(event.getStage() == RenderLevelStageEvent.Stage.AFTER_CUTOUT_MIPPED_BLOCKS_BLOCKS) {
-        Overlay.TextOverlayGui.INSTANCE.onRenderWorldOverlay(event.getPoseStack(), event.getRenderTick());
-      }
-    }
-  }
+
 }

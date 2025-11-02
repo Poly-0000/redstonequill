@@ -29,7 +29,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
-import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -182,10 +181,6 @@ public class CircuitComponents
     @Override
     public List<ItemStack> dropList(BlockState state, Level world, @Nullable BlockEntity te, boolean explosion)
     { return Collections.singletonList(new ItemStack(this.asItem())); }
-
-    @Override
-    public boolean isPathfindable(BlockState state, PathComputationType type)
-    { return true; }
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context)
@@ -351,8 +346,6 @@ public class CircuitComponents
       Direction side = state.getValue(FACING);
       spawnPoweredParticle(world, rand, pos, color, side, 0.3f);
     }
-
-    //------------------------------------------------------------------------------------------------------------------
 
     protected static Direction getOutputFacing(BlockState state)
     { return getFrontFacing(state); }

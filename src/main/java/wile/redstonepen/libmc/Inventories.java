@@ -329,7 +329,7 @@ public class Inventories
       if(matches.isEmpty()) return ItemStack.EMPTY;
       if(!simulate) {
         int n_left = request_stack.getCount();
-        ItemStack fetched_stack = matches.get(0).split(n_left);
+        ItemStack fetched_stack = matches.getFirst().split(n_left);
         n_left -= fetched_stack.getCount();
         for(int i=1; (i<matches.size()) && (n_left>0); ++i) {
           ItemStack stack = matches.get(i).split(n_left);

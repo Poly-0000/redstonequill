@@ -19,10 +19,7 @@ import net.minecraft.world.level.LevelReader;
 
 public class StandardItems
 {
-  public interface IStandardItem
-  {
-  }
-  public static class BaseItem extends Item implements IStandardItem
+  public static class BaseItem extends Item
   {
     public BaseItem(Properties properties)
     { super(properties); }
@@ -30,12 +27,10 @@ public class StandardItems
     public boolean doesSneakBypassUse(ItemStack stack, LevelReader world, BlockPos pos, Player player)
     { return false; }
 
-
     public InteractionResult useOn(UseOnContext context)
     { return onItemUseFirst(context.getItemInHand(), context); }
 
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context)
     { return InteractionResult.PASS; }
   }
-
 }

@@ -57,7 +57,6 @@ public class RedstonePenItem extends StandardItems.BaseItem
     } else {
       tooltip.add(Auxiliaries.localizable("item."+ ModConstants.MODID + ".pen.tooltip.rsfrominventory"));
     }
-    Auxiliaries.Tooltip.addInformation(stack, tooltip, flag, true);
   }
 
   @Override
@@ -214,11 +213,7 @@ public class RedstonePenItem extends StandardItems.BaseItem
       final String look_dir = Direction.orderedByNearest(entity)[0].toString().substring(0, 1); // direct index addressing is safe here.
       tc.append(Component.literal(String.format(" | %s [%d,%d,%d]", look_dir, pos.getX(), pos.getY(), pos.getZ())));
     }
-    Overlay.show((ServerPlayer)entity, tc, 400);
   }
-
-  //------------------------------------------------------------------------------------------------------------------
-
   private boolean attack(ItemStack stack, BlockPos pos, Player player)
   {
     final Level world = player.getCommandSenderWorld();
@@ -238,9 +233,6 @@ public class RedstonePenItem extends StandardItems.BaseItem
       return false;
     }
   }
-
-  //------------------------------------------------------------------------------------------------------------------
-
   public static void pushRedstone(ItemStack stack, int amount, Player player)
   {
     if(player.isCreative()) return;
