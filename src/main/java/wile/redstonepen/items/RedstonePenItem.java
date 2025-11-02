@@ -46,8 +46,6 @@ public class RedstonePenItem extends StandardItems.BaseItem
   public RedstonePenItem(Item.Properties properties)
   { super(properties); }
 
-  //------------------------------------------------------------------------------------------------------------------
-
   @Override
   @OnlyIn(Dist.CLIENT)
   public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> tooltip, TooltipFlag flag)

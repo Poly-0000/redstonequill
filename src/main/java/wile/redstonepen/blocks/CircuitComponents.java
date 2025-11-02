@@ -387,10 +387,7 @@ public class CircuitComponents
         world.setBlock(pos, world.getBlockState(pos).getFluidState().createLegacyBlock(), 2|16);
       }
     }
-
     public BlockState update(BlockState state)
     { return state; }
-
   }
-
 }

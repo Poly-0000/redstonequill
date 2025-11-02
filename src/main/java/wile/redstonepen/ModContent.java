@@ -19,7 +19,6 @@ public class ModContent
   {
     initBlocks();
     initItems();
-    Registries.addRecipeSerializer("crafting_extended_shapeless", ()->wile.redstonepen.libmc.ExtendedShapelessRecipe.SERIALIZER);
   }
   public static void initBlocks()
   {
@@ -33,9 +32,6 @@ public class ModContent
   }
   public static void initItems()
   {
-    Registries.addItem("pen", ()->new RedstonePenItem(
-      (new Item.Properties()).stacksTo(0).durability(256)
-    ));
     Registries.addItem("quill", ()->new RedstonePenItem(
       (new Item.Properties()).stacksTo(1).durability(0)
     ));

@@ -505,8 +505,6 @@ public class RedstoneTrack
       }
     }
 
-    //------------------------------------------------------------------------------------------------------------------
-
     public InteractionResult modifySegments(BlockState state, Level world, BlockPos pos, Player player, ItemStack stack, InteractionHand hand, BlockHitResult rtr, boolean no_add, boolean no_remove)
     {
       if((!stack.isEmpty()) && (stack.getItem()!=Items.REDSTONE) && (!RedstonePenItem.isPen(stack))) {
@@ -544,8 +542,6 @@ public class RedstoneTrack
       notifyAdjacent(world, pos);
       return InteractionResult.CONSUME;
     }
-
-    //------------------------------------------------------------------------------------------------------------------
 
     private boolean can_provide_power_ = true;
 

@@ -13,9 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -30,17 +28,10 @@ public class Registries
   private static final List<Tuple<String, Supplier<? extends Item>>> item_suppliers = new ArrayList<>();
   private static final List<Tuple<String, Supplier<? extends BlockEntityType<?>>>> block_entity_type_suppliers = new ArrayList<>();
   private static final List<Tuple<String, Supplier<? extends EntityType<?>>>> entity_type_suppliers = new ArrayList<>();
-  private static final List<Tuple<String, Supplier<? extends MenuType<?>>>> menu_type_suppliers = new ArrayList<>();
-  private static final List<Tuple<String, Supplier<? extends RecipeSerializer<?>>>> recipe_serializers_suppliers = new ArrayList<>();
   private static final Map<String, Block> registered_blocks = new LinkedHashMap<>();
   private static final Map<String, Item> registered_items = new LinkedHashMap<>();
   private static final Map<String, BlockEntityType<?>> registered_block_entity_types = new HashMap<>();
   private static final Map<String, EntityType<?>> registered_entity_types = new HashMap<>();
-  private static final Map<String, MenuType<?>> registered_menu_types = new HashMap<>();
-  private static final Map<String, RecipeSerializer<?>> registered_recipe_serializers = new HashMap<>();
-  public static void init()
-  {
-  }
   public static void instantiateAll()
   {
     registered_blocks.clear();
@@ -62,16 +53,6 @@ public class Registries
     entity_type_suppliers.forEach((reg)->{
       registered_entity_types.put(reg.getA(), reg.getB().get());
       Registry.register(BuiltInRegistries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(ModConstants.MODID, reg.getA()), registered_entity_types.get(reg.getA()));
-    });
-    registered_menu_types.clear();
-    menu_type_suppliers.forEach((reg)->{
-      registered_menu_types.put(reg.getA(), reg.getB().get());
-      Registry.register(BuiltInRegistries.MENU, ResourceLocation.fromNamespaceAndPath(ModConstants.MODID, reg.getA()), registered_menu_types.get(reg.getA()));
-    });
-    registered_recipe_serializers.clear();
-    recipe_serializers_suppliers.forEach((reg)->{
-      registered_recipe_serializers.put(reg.getA(), reg.getB().get());
-      Registry.register(BuiltInRegistries.RECIPE_SERIALIZER, ResourceLocation.fromNamespaceAndPath(ModConstants.MODID, reg.getA()), registered_recipe_serializers.get(reg.getA()));
     });
   }
   public static Block getBlock(String block_name)
@@ -108,9 +89,8 @@ public class Registries
       return BlockEntityType.Builder.of(ctor, blocks).build(null);
     }));
   }
-    public static void addRecipeSerializer(String registry_name, Supplier<? extends RecipeSerializer<?>> serializer_supplier)
-  { recipe_serializers_suppliers.add(new Tuple<>(registry_name, serializer_supplier)); }
-    public static void addBlock(String registry_name, Supplier<? extends Block> block_supplier, BlockEntityType.BlockEntitySupplier<?> block_entity_ctor)
+
+  public static void addBlock(String registry_name, Supplier<? extends Block> block_supplier, BlockEntityType.BlockEntitySupplier<?> block_entity_ctor)
   {
     addBlock(registry_name, block_supplier);
     addBlockEntityType("tet_"+registry_name, block_entity_ctor, registry_name);

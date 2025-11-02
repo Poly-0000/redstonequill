@@ -30,7 +30,6 @@ public class ModRedstonePen
   public ModRedstonePen(IEventBus bus)
   {
     Auxiliaries.init();
-    Registries.init();
     ModContent.init();
     bus.addListener(LiveCycleEvents::onRegister);
     bus.addListener(LiveCycleEvents::onRegisterNetwork);
@@ -43,7 +42,6 @@ public class ModRedstonePen
     // TODO: Color code lines
     public static void onBuildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS) {
-            event.accept(Registries.getItem("pen"));
             event.accept(Registries.getItem("quill"));
         }
     }
