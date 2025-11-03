@@ -1,0 +1,4 @@
+{
+  "ambientocclusion": false,
+	"textures": { "particle": "redstonequill:block/track_particle"	}
+}

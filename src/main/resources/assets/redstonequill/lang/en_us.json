@@ -1,0 +1,9 @@
+{
+  "language": "English",
+  "language.code": "en_us",
+  "language.region": "United States",
+  "block.redstonequill.track": "Redstone Track",
+  "item.redstonequill.quill": "Redstone Quill",
+  "redstonequill.track_power": "Power: %1$s",
+  "config.jade.plugin_redstonequill.track_power": "Track Power"
+}
