@@ -10,7 +10,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import wfphantom.redstonequill.blocks.RedstoneTrack;
 import wfphantom.redstonequill.items.RedstoneQuillItem;
-import wfphantom.redstonequill.libmc.StandardBlocks;
 import wfphantom.redstonequill.libmc.Registries;
 
 public class ModContent {
@@ -20,8 +19,7 @@ public class ModContent {
     }
 
     public static void initBlocks() {
-        Registries.addBlock("track", () -> new RedstoneTrack.RedstoneTrackBlock(StandardBlocks.CFG_DEFAULT, BlockBehaviour.Properties.of().noCollission().instabreak().dynamicShape().randomTicks()),
-                RedstoneTrack.TrackBlockEntity::new);
+        Registries.addBlock("track", () -> new RedstoneTrack.RedstoneTrackBlock(BlockBehaviour.Properties.of().noCollission().instabreak().dynamicShape().randomTicks()), RedstoneTrack.TrackBlockEntity::new);
     }
 
     public static void initItems() {

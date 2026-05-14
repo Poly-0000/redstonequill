@@ -1,27 +1,20 @@
 /*
- * @file ModRedstonePen.java
+ * @file RedstoneQuill.java
  * @author Stefan Wilhelm (wile)
  * @copyright (C) 2020 Stefan Wilhelm
  * @license MIT (see https://opensource.org/licenses/MIT)
  */
 package wfphantom.redstonequill;
 
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import com.mojang.logging.LogUtils;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ModelEvent;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.RegisterEvent;
-import wfphantom.redstonequill.blocks.RedstoneTrack;
-import wfphantom.redstonequill.detail.ModRenderers;
+import org.slf4j.Logger;
 import wfphantom.redstonequill.libmc.Networking;
 import wfphantom.redstonequill.libmc.Registries;
 
@@ -32,7 +25,9 @@ public class RedstoneQuill {
     // TODO: Check why redstone is not updating properly
     // TODO: Color code lines
     // TODO: Leftover code cleanup
+    // TODO: Recipe really doesn't need to be all that
     public static final String MODID = "redstonequill";
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public RedstoneQuill(IEventBus bus) {
         ModContent.init();
@@ -56,19 +51,6 @@ public class RedstoneQuill {
         private static void onRegisterNetwork(final RegisterPayloadHandlersEvent event) {
             PayloadRegistrar registrar = event.registrar("v1");
             Networking.init(registrar);
-        }
-    }
-
-    @EventBusSubscriber(modid = ModConstants.MODID, value = Dist.CLIENT)
-    public static class ClientEvents {
-        @SubscribeEvent
-        public static void onClientSetup(final FMLClientSetupEvent event) {
-            BlockEntityRenderers.register((BlockEntityType<RedstoneTrack.TrackBlockEntity>) Registries.getBlockEntityTypeOfBlock("track"), renderer -> new ModRenderers.TrackTer());
-        }
-
-        @SubscribeEvent
-        public static void onRegisterModels(final ModelEvent.RegisterAdditional event) {
-            ModRenderers.TrackTer.registerModels().forEach(event::register);
         }
     }
 }

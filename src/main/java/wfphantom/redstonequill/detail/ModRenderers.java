@@ -8,25 +8,24 @@ package wfphantom.redstonequill.detail;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import wfphantom.redstonequill.ModConstants;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import wfphantom.redstonequill.RedstoneQuill;
 import wfphantom.redstonequill.blocks.RedstoneTrack;
 import wfphantom.redstonequill.blocks.RedstoneTrack.defs.connections;
-import wfphantom.redstonequill.libmc.Auxiliaries;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -43,7 +42,7 @@ public class ModRenderers {
             List<ModelResourceLocation> resources_to_register = new ArrayList<>();
 
             RedstoneTrack.defs.models.STATE_WIRE_MAPPING.entrySet().forEach((kv -> {
-                final ModelResourceLocation mrl = new ModelResourceLocation(ResourceLocation.tryBuild(ModConstants.MODID, kv.getValue()).withPrefix("item/"), "standalone");
+                final ModelResourceLocation mrl = new ModelResourceLocation(ResourceLocation.tryBuild(RedstoneQuill.MODID, kv.getValue()).withPrefix("item/"), "standalone");
                 for (int i = 0; i < RedstoneTrack.defs.STATE_FLAG_WIR_COUNT; ++i) {
                     if ((kv.getKey() & (1L << (RedstoneTrack.defs.STATE_FLAG_WIR_POS + i))) != 0) {
                         model_rls[i] = mrl;
@@ -53,7 +52,7 @@ public class ModRenderers {
                 resources_to_register.add(mrl); //  net.neoforged.client.model.ForgeModelBakery.addSpecialModel(mrl);
             }));
             RedstoneTrack.defs.models.STATE_CONNECT_MAPPING.entrySet().forEach((kv -> {
-                ModelResourceLocation mrl = new ModelResourceLocation(ResourceLocation.tryBuild(ModConstants.MODID, kv.getValue()).withPrefix("item/"), "standalone");
+                ModelResourceLocation mrl = new ModelResourceLocation(ResourceLocation.tryBuild(RedstoneQuill.MODID, kv.getValue()).withPrefix("item/"), "standalone");
                 for (int i = 0; i < RedstoneTrack.defs.STATE_FLAG_CON_COUNT; ++i) {
                     if ((kv.getKey() & (1L << (RedstoneTrack.defs.STATE_FLAG_CON_POS + i))) != 0) {
                         modelc_rls[i] = mrl;
@@ -63,7 +62,7 @@ public class ModRenderers {
                 resources_to_register.add(mrl);
             }));
             RedstoneTrack.defs.models.STATE_CNTWIRE_MAPPING.entrySet().forEach((kv -> {
-                ModelResourceLocation mrl = new ModelResourceLocation(ResourceLocation.tryBuild(ModConstants.MODID, kv.getValue()).withPrefix("item/"), "standalone");
+                ModelResourceLocation mrl = new ModelResourceLocation(ResourceLocation.tryBuild(RedstoneQuill.MODID, kv.getValue()).withPrefix("item/"), "standalone");
                 for (int i = 0; i < RedstoneTrack.defs.STATE_FLAG_CON_COUNT; ++i) {
                     if ((kv.getKey() & (1L << (RedstoneTrack.defs.STATE_FLAG_CON_POS + i))) != 0) {
                         modelm_rls[i] = mrl;
@@ -93,8 +92,7 @@ public class ModRenderers {
         public void render(final RedstoneTrack.TrackBlockEntity te, float unused1, PoseStack mxs, MultiBufferSource buf, int combinedLightIn, int combinedOverlayIn) {
             if (tesr_error_counter <= 0) return;
             try {
-                final BlockState block_state = te.getBlockState();
-                final VertexConsumer vxb = buf.getBuffer(ItemBlockRenderTypes.getRenderType(block_state, false));
+                final VertexConsumer vxb = buf.getBuffer(Sheets.cutoutBlockSheet());
                 combinedOverlayIn = OverlayTexture.pack(0, 0);
                 mxs.pushPose();
                 {
@@ -112,8 +110,8 @@ public class ModRenderers {
                                 model,
                                 (float) rgb.x(), (float) rgb.y(), (float) rgb.z(),
                                 combinedLightIn,
-                                combinedOverlayIn
-                        );
+                                combinedOverlayIn,
+                                ModelData.EMPTY, null);
                     }
                 }
                 {
@@ -135,15 +133,12 @@ public class ModRenderers {
                                 model,
                                 (float) rgb.x(), (float) rgb.y(), (float) rgb.z(),
                                 combinedLightIn,
-                                combinedOverlayIn
-                        );
+                                combinedOverlayIn,
+                                ModelData.EMPTY, null);
                     }
                 }
             } catch (Throwable e) {
-                if (--tesr_error_counter <= 0) {
-                    Auxiliaries.logError("TER was disabled because broken, exception was: " + e.getMessage());
-                    Auxiliaries.logError(String.join("\n", Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).toList()));
-                }
+                if (--tesr_error_counter <= 0) RedstoneQuill.LOGGER.error("TER was disabled because broken", e);
             }
             mxs.popPose();
         }

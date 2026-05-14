@@ -12,11 +12,12 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import wfphantom.redstonequill.ModConstants;
+import wfphantom.redstonequill.RedstoneQuill;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -33,17 +34,17 @@ public class Registries {
         registered_blocks.clear();
         block_suppliers.forEach((reg) -> {
             registered_blocks.put(reg.getA(), reg.getB().get());
-            Registry.register(BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath(ModConstants.MODID, reg.getA()), registered_blocks.get(reg.getA()));
+            Registry.register(BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath(RedstoneQuill.MODID, reg.getA()), registered_blocks.get(reg.getA()));
         });
         registered_items.clear();
         item_suppliers.forEach((reg) -> {
             registered_items.put(reg.getA(), reg.getB().get());
-            Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(ModConstants.MODID, reg.getA()), registered_items.get(reg.getA()));
+            Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(RedstoneQuill.MODID, reg.getA()), registered_items.get(reg.getA()));
         });
         registered_block_entity_types.clear();
         block_entity_type_suppliers.forEach((reg) -> {
             registered_block_entity_types.put(reg.getA(), reg.getB().get());
-            Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(ModConstants.MODID, reg.getA()), registered_block_entity_types.get(reg.getA()));
+            Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(RedstoneQuill.MODID, reg.getA()), registered_block_entity_types.get(reg.getA()));
         });
     }
 
@@ -80,7 +81,7 @@ public class Registries {
         block_entity_type_suppliers.add(new Tuple<>(registry_name, () -> {
             final Block[] blocks = Arrays.stream(block_names).map(s -> {
                 Block b = registered_blocks.get(s);
-                if (b == null) Auxiliaries.logError("registered_blocks does not encompass '" + s + "'");
+                if (b == null) RedstoneQuill.LOGGER.error("registered_blocks does not encompass '{}'", s);
                 return b;
             }).filter(Objects::nonNull).toList().toArray(new Block[]{});
             return BlockEntityType.Builder.of(ctor, blocks).build(null);

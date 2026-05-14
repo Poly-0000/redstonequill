@@ -11,11 +11,9 @@ package wfphantom.redstonequill.libmc;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Mth;
-import net.minecraft.world.*;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -38,10 +36,6 @@ public class Inventories {
         });
     }
 
-    public static boolean isItemStackableOn(ItemStack a, ItemStack b) {
-        return (!a.isEmpty()) && (a.isStackable()) && (ItemStack.isSameItem(a, b));
-    }
-
     public static ItemStack extract(Player player, @Nullable ItemStack match, int amount, boolean simulate) {
         if (amount <= 0) return ItemStack.EMPTY;
         final InventoryRange ir = InventoryRange.fromPlayerInventory(player);
@@ -52,10 +46,6 @@ public class Inventories {
             mstack.setCount(amount);
             return ir.extract(mstack, simulate);
         }
-    }
-
-    public static ItemStack insert(Player player, ItemStack stack, boolean simulate) {
-        return InventoryRange.fromPlayerInventory(player).insert(stack, simulate);
     }
 
     private static ItemStack checked(ItemStack stack) {
@@ -169,122 +159,6 @@ public class Inventories {
                 if (index >= parent_.size_) throw new NoSuchElementException();
                 return parent_.getItem(index++);
             }
-        }
-
-        /**
-         * Moves as much items from the stack to the slots in range [offset_, end_slot] of the inventory_,
-         * filling up existing stacks first, then (player inventory_ only) checks appropriate empty slots next
-         * to stacks that have that item already, and last uses any empty slot that can be found.
-         * Returns the stack that is still remaining in the referenced `stack`.
-         */
-        public ItemStack insert(final ItemStack input_stack, boolean only_fillup, int limit, boolean reverse, boolean force_group_stacks) {
-            final ItemStack mvstack = input_stack.copy();
-            if (mvstack.isEmpty()) return checked(mvstack);
-            int limit_left = (limit > 0) ? (Math.min(limit, mvstack.getMaxStackSize())) : (mvstack.getMaxStackSize());
-            boolean[] matches = new boolean[size_];
-            boolean[] empties = new boolean[size_];
-            int num_matches = 0;
-            for (int i = 0; i < size_; ++i) {
-                final int sno = reverse ? (size_ - 1 - i) : (i);
-                final ItemStack stack = getItem(sno);
-                if (stack.isEmpty()) {
-                    empties[sno] = true;
-                } else if (areItemStacksIdentical(stack, mvstack)) {
-                    matches[sno] = true;
-                    ++num_matches;
-                }
-            }
-            // first iteration: fillup existing stacks
-            for (int i = 0; i < size_; ++i) {
-                final int sno = reverse ? (size_ - 1 - i) : (i);
-                if ((empties[sno]) || (!matches[sno])) continue;
-                final ItemStack stack = getItem(sno);
-                int nmax = Math.min(limit_left, stack.getMaxStackSize() - stack.getCount());
-                if (mvstack.getCount() <= nmax) {
-                    stack.setCount(stack.getCount() + mvstack.getCount());
-                    setItem(sno, stack);
-                    return ItemStack.EMPTY;
-                } else {
-                    mvstack.shrink(nmax);
-                    limit_left -= nmax;
-                    stack.grow(nmax);
-                    setItem(sno, stack);
-                }
-            }
-            if (only_fillup) return checked(mvstack);
-            if ((num_matches > 0) && ((force_group_stacks) || (inventory_ instanceof Inventory))) {
-                // second iteration: use appropriate empty slots,
-                // a) between
-                {
-                    int insert_start = -1;
-                    int insert_end = -1;
-                    int i = 1;
-                    for (; i < size_ - 1; ++i) {
-                        final int sno = reverse ? (size_ - 1 - i) : (i);
-                        if (insert_start < 0) {
-                            if (matches[sno]) insert_start = sno;
-                        } else if (matches[sno]) {
-                            insert_end = sno;
-                        }
-                    }
-                    for (i = insert_start; i < insert_end; ++i) {
-                        final int sno = reverse ? (size_ - 1 - i) : (i);
-                        if ((!empties[sno]) || (!canPlaceItem(sno, mvstack))) continue;
-                        int nmax = Math.min(limit_left, mvstack.getCount());
-                        ItemStack moved = mvstack.copy();
-                        moved.setCount(nmax);
-                        mvstack.shrink(nmax);
-                        setItem(sno, moved);
-                        return checked(mvstack);
-                    }
-                }
-                // b) before/after
-                {
-                    for (int i = 1; i < size_ - 1; ++i) {
-                        final int sno = reverse ? (size_ - 1 - i) : (i);
-                        if (!matches[sno]) continue;
-                        int ii = (empties[sno - 1]) ? (sno - 1) : (empties[sno + 1] ? (sno + 1) : -1);
-                        if ((ii >= 0) && (canPlaceItem(ii, mvstack))) {
-                            int nmax = Math.min(limit_left, mvstack.getCount());
-                            ItemStack moved = mvstack.copy();
-                            moved.setCount(nmax);
-                            mvstack.shrink(nmax);
-                            setItem(ii, moved);
-                            return checked(mvstack);
-                        }
-                    }
-                }
-            }
-            // third iteration: use any empty slots
-            for (int i = 0; i < size_; ++i) {
-                final int sno = reverse ? (size_ - 1 - i) : (i);
-                if ((!empties[sno]) || (!canPlaceItem(sno, mvstack))) continue;
-                int nmax = Math.min(limit_left, mvstack.getCount());
-                ItemStack placed = mvstack.copy();
-                placed.setCount(nmax);
-                mvstack.shrink(nmax);
-                setItem(sno, placed);
-                return checked(mvstack);
-            }
-            return checked(mvstack);
-        }
-
-        public ItemStack insert(ItemStack input_stack, boolean simulate) {
-            if (input_stack.isEmpty()) return ItemStack.EMPTY;
-            if (!simulate) return insert(input_stack);
-            input_stack = input_stack.copy();
-            for (ItemStack stack : this) {
-                if (stack.isEmpty()) return ItemStack.EMPTY;
-                final int nleft = stack.getCount() - stack.getMaxStackSize();
-                if ((nleft <= 0) || (!isItemStackableOn(stack, input_stack))) continue;
-                if (nleft >= input_stack.getCount()) return ItemStack.EMPTY;
-                input_stack.shrink(nleft);
-            }
-            return input_stack;
-        }
-
-        public ItemStack insert(final ItemStack stack_to_move) {
-            return insert(stack_to_move, false, 0, false, true);
         }
 
         public ItemStack extract(int amount, boolean random, boolean simulate) {

@@ -16,26 +16,23 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.SignalGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 public class StandardBlocks {
-    public static final long CFG_DEFAULT     = 0x0000000000000000L; // no special config
-    public static final long CFG_AI_PASSABLE = 0x0000000000000800L; // does not block movement path for AI, needed for non-opaque blocks with collision shapes not thin at the bottom or one side.
-
     public interface IStandardBlock {
         default boolean hasDynamicDropList() {
             return false;
@@ -47,18 +44,11 @@ public class StandardBlocks {
     }
 
     public static class BaseBlock extends Block implements IStandardBlock {
-        public final long config;
 
-        public BaseBlock(long conf, BlockBehaviour.Properties properties) {
+        public BaseBlock(BlockBehaviour.Properties properties) {
             super(properties);
-            config = conf;
             BlockState state = getStateDefinition().any();
             registerDefaultState(state);
-        }
-
-        @Override
-        public boolean isPathfindable(BlockState state, PathComputationType type) {
-            return ((config & CFG_AI_PASSABLE) != 0) && (super.isPathfindable(state, type));
         }
 
         @Override
@@ -87,21 +77,25 @@ public class StandardBlocks {
         public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, LevelAccessor world, BlockPos pos, BlockPos facingPos) {
             return state;
         }
+
+        public boolean shouldCheckWeakPower(BlockState state, SignalGetter level, BlockPos pos, Direction side) {
+            return state.isRedstoneConductor(level, pos);
+        }
     }
 
     public static class Cutout extends BaseBlock implements IStandardBlock {
         private final VoxelShape vshape;
 
-        public Cutout(long conf, BlockBehaviour.Properties properties) {
-            this(conf, properties, Auxiliaries.getPixeledAABB(0, 0, 0, 16, 16, 16));
+        public Cutout(BlockBehaviour.Properties properties) {
+            this(properties, Auxiliaries.getPixeledAABB(0, 0, 0, 16, 16, 16));
         }
 
-        public Cutout(long conf, BlockBehaviour.Properties properties, AABB aabb) {
-            this(conf, properties, Shapes.create(aabb));
+        public Cutout(BlockBehaviour.Properties properties, AABB aabb) {
+            this(properties, Shapes.create(aabb));
         }
 
-        public Cutout(long conf, BlockBehaviour.Properties properties, VoxelShape voxel_shape) {
-            super(conf, properties);
+        public Cutout(BlockBehaviour.Properties properties, VoxelShape voxel_shape) {
+            super(properties);
             vshape = voxel_shape;
         }
 

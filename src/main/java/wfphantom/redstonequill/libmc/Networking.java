@@ -9,7 +9,6 @@
 package wfphantom.redstonequill.libmc;
 
 import net.minecraft.client.player.LocalPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -20,7 +19,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import wfphantom.redstonequill.ModConstants;
+import net.neoforged.neoforge.network.PacketDistributor;
+import wfphantom.redstonequill.RedstoneQuill;
 
 public class Networking {
     public static void init(net.neoforged.neoforge.network.registration.PayloadRegistrar registrar) {
@@ -59,7 +59,7 @@ public class Networking {
     //--------------------------------------------------------------------------------------------------------------------
     public record UnifiedPayload(UnifiedData data) implements CustomPacketPayload {
         public static final StreamCodec<FriendlyByteBuf, UnifiedPayload> STREAM_CODEC = CustomPacketPayload.codec(UnifiedPayload::write, UnifiedPayload::new);
-        public static final CustomPacketPayload.Type<UnifiedPayload> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(ModConstants.MODID, "unpnbt"));
+        public static final CustomPacketPayload.Type<UnifiedPayload> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(RedstoneQuill.MODID, "unpnbt"));
 
         private UnifiedPayload(FriendlyByteBuf buf) {
             this(new UnifiedData(buf.readUtf(), buf.readNbt()));

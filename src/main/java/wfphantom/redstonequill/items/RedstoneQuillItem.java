@@ -11,12 +11,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -33,11 +35,6 @@ public class RedstoneQuillItem extends StandardItems.BaseItem {
     }
 
     @Override
-    public int getEnchantmentValue() {
-        return 0;
-    }
-
-    @Override
     public boolean doesSneakBypassUse(ItemStack stack, LevelReader world, BlockPos pos, Player player) {
         return true;
     }
@@ -51,9 +48,9 @@ public class RedstoneQuillItem extends StandardItems.BaseItem {
     public boolean canAttackBlock(BlockState state, Level world, BlockPos pos, Player player) {
         // Hand needs to be guessed here.
         ItemStack stack = player.getItemInHand(player.getUsedItemHand());
-        if (!isPen(stack)) stack = player.getMainHandItem();
-        if (!isPen(stack)) stack = player.getOffhandItem();
-        if (isPen(stack)) attack(stack, pos, player);
+        if (!isQuill(stack)) stack = player.getMainHandItem();
+        if (!isQuill(stack)) stack = player.getOffhandItem();
+        if (isQuill(stack)) attack(stack, pos, player);
         return false;
     }
 
@@ -120,27 +117,18 @@ public class RedstoneQuillItem extends StandardItems.BaseItem {
     public static void pushRedstone(ItemStack stack, int amount, Player player) {
         if (player.isCreative()) return;
         if (amount > 0) {
-            if (isPen(stack)) {
-                if (stack.getMaxDamage() <= 0) {
-                    ItemStack remaining = Inventories.insert(player, new ItemStack(Items.REDSTONE, amount), false);
-                    if (!remaining.isEmpty()) Inventories.give(player, remaining); // also drops, but with sound.
-                } else if (stack.getDamageValue() >= amount) stack.setDamageValue(stack.getDamageValue() - amount);
-                else {
-                    amount -= stack.getDamageValue();
-                    stack.setDamageValue(0);
-                    Inventories.give(player, new ItemStack(Items.REDSTONE, amount));
-                }
-            } else if (stack.getItem() == Items.REDSTONE) {
+            if (stack.getItem() == Items.REDSTONE) {
                 if (stack.getCount() <= stack.getMaxStackSize() - amount) stack.grow(amount);
                 else Inventories.give(player, new ItemStack(Items.REDSTONE, amount));
-            } else Inventories.give(player, new ItemStack(Items.REDSTONE, amount));
+            }
+            else Inventories.give(player, new ItemStack(Items.REDSTONE, amount));
         }
     }
 
     public static void popRedstone(ItemStack stack, int amount, Player player, InteractionHand hand) {
         if (player.isCreative()) return;
         if (amount <= 0) return;
-        Inventories.extract(player, new ItemStack(Items.REDSTONE), amount, false).getCount();
+        Inventories.extract(player, new ItemStack(Items.REDSTONE), amount, false);
         if (stack.getItem() == Items.REDSTONE) {
             if (stack.getCount() <= amount) player.setItemInHand(hand, ItemStack.EMPTY);
             else stack.shrink(amount);
@@ -149,14 +137,12 @@ public class RedstoneQuillItem extends StandardItems.BaseItem {
 
     public static boolean hasEnoughRedstone(ItemStack stack, int amount, Player player) {
         if (player.isCreative()) return true;
-        if (isPen(stack)) {
-            if (stack.getMaxDamage() > 0) return stack.getDamageValue() < (stack.getMaxDamage() - amount);
-            else return Inventories.extract(player, new ItemStack(Items.REDSTONE), amount, true).getCount() >= amount;
-        } else if (stack.getItem() == Items.REDSTONE) return (stack.getCount() >= amount);
+        if (isQuill(stack)) return Inventories.extract(player, new ItemStack(Items.REDSTONE), amount, true).getCount() >= amount;
+        else if (stack.getItem() == Items.REDSTONE) return (stack.getCount() >= amount);
         else return false;
     }
 
-    public static boolean isPen(ItemStack stack) {
+    public static boolean isQuill(ItemStack stack) {
         return (stack.getItem() instanceof RedstoneQuillItem);
     }
 }
